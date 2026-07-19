@@ -1,0 +1,125 @@
+# DigitalOcean App Platform spec — master-plan-painel.
+#
+# Two components under one app (one origin, so the SPA calls /api same-origin,
+# no CORS):
+#   • web  — static site: the built Svelte SPA, served from DO's CDN at "/"
+#   • api  — service:     FastAPI (Dockerfile), routed at "/api"
+#
+# Deploy:
+#   doctl apps create --spec .do/app.yaml         # first time
+#   doctl apps update <APP_ID> --spec .do/app.yaml # subsequent
+# or point the App Platform UI at this file (Settings → App Spec).
+#
+# ┌─────────────────────────────────────────────────────────────────────────┐
+# │ DATA PERSISTENCE — via DigitalOcean Spaces                              │
+# │ App Platform service disks are EPHEMERAL. This app persists its JSON     │
+# │ stores to a Spaces bucket (write-through: downloaded on boot, uploaded   │
+# │ on every write) when the MASTER_PLAN_SPACES_* vars below are set — so    │
+# │ data survives deploys/restarts. It is a SINGLE-WRITER design, so         │
+# │ instance_count MUST stay 1. If the Spaces vars are left unset, the store │
+# │ falls back to ephemeral local disk (demo only — wiped on every deploy).  │
+# │ Create a Space + access keys first; see DEPLOY-DO.md.                    │
+# └─────────────────────────────────────────────────────────────────────────┘
+
+name: master-plan-painel
+region: nyc
+
+# --- SPA: static site (built by the Node buildpack, served from the CDN) -----
+static_sites:
+  - name: web
+    # Connect this repo in the App Platform UI (or via doctl) first.
+    github:
+      repo: https://github.com/pedroanisio/master-plan-painel
+      branch: main
+      deploy_on_push: true
+    source_dir: /frontend
+    build_command: npm ci && npm run build
+    output_dir: dist
+    # Single-page app: unknown paths fall back to the shell for client routing.
+    catchall_document: index.html
+    routes:
+      - path: /
+
+# --- API: FastAPI service (built from the repo Dockerfile) -------------------
+services:
+  - name: api
+    github:
+      repo: https://github.com/pedroanisio/master-plan-painel
+      branch: main
+      deploy_on_push: true
+    # Builds the final Dockerfile stage (api-runtime: non-root, single worker).
+    dockerfile_path: Dockerfile
+    source_dir: /
+    # The container's uvicorn binds :8000 (Dockerfile CMD).
+    http_port: 8000
+    # instance_count MUST stay 1: the JSON stores are in-memory + file-backed
+    # with no cross-process locking (see the persistence note above).
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    health_check:
+      http_path: /api/health
+      initial_delay_seconds: 15
+      period_seconds: 30
+      timeout_seconds: 5
+      success_threshold: 1
+      failure_threshold: 3
+    routes:
+      # App Platform strips the matched prefix by default; the API mounts every
+      # route under /api, so the prefix MUST be preserved or requests 404.
+      - path: /api
+        preserve_path_prefix: true
+    envs:
+      - key: MASTER_PLAN_ENV
+        scope: RUN_TIME
+        value: production
+      # Same-origin behind the App Platform router → CORS middleware disabled.
+      - key: MASTER_PLAN_CORS_ORIGINS
+        scope: RUN_TIME
+        value: ""
+      # Local paths (the working copy). /data is prepared and owned by the
+      # non-root app user in the Dockerfile's api-runtime stage. With Spaces
+      # configured (below) these are hydrated from / mirrored to the bucket.
+      - key: MASTER_PLAN_DB
+        scope: RUN_TIME
+        value: /data/projects.json
+      - key: MASTER_PLAN_WORKLOG_DB
+        scope: RUN_TIME
+        value: /data/work_entries.json
+      - key: MASTER_PLAN_USERS_DB
+        scope: RUN_TIME
+        value: /data/users.json
+      - key: MASTER_PLAN_APIKEYS_DB
+        scope: RUN_TIME
+        value: /data/api_keys.json
+      # --- DigitalOcean Spaces (durable object storage) --------------------
+      # Set all four to enable the write-through mirror. Endpoint is the
+      # regional Spaces host; region label is cosmetic but boto3 wants one.
+      - key: MASTER_PLAN_SPACES_BUCKET
+        scope: RUN_TIME
+        value: master-plan-data          # your Space name
+      - key: MASTER_PLAN_SPACES_ENDPOINT
+        scope: RUN_TIME
+        value: https://nyc3.digitaloceanspaces.com
+      - key: MASTER_PLAN_SPACES_REGION
+        scope: RUN_TIME
+        value: nyc3
+      - key: MASTER_PLAN_SPACES_PREFIX
+        scope: RUN_TIME
+        value: master-plan/
+      # Spaces access keys — encrypted secrets (create under API → Spaces Keys).
+      - key: MASTER_PLAN_SPACES_KEY
+        scope: RUN_TIME
+        type: SECRET
+        value: REPLACE_WITH_SPACES_ACCESS_KEY
+      - key: MASTER_PLAN_SPACES_SECRET
+        scope: RUN_TIME
+        type: SECRET
+        value: REPLACE_WITH_SPACES_SECRET_KEY
+      # REQUIRED signing key. Do NOT commit the real value — set it as an
+      # encrypted app-level secret in the UI (Settings → App-Level Env) or via:
+      #   doctl apps update <APP_ID> --spec .do/app.yaml   (with value below)
+      # Generate: openssl rand -hex 32
+      - key: MASTER_PLAN_SECRET
+        scope: RUN_TIME
+        type: SECRET
+        value: REPLACE_WITH_openssl_rand_hex_32

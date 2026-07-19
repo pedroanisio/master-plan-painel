@@ -269,6 +269,47 @@ Project records are stored in the `api_data` Docker volume at
 > doesn't recognise. On `localhost` this works out of the box; for a UAT domain,
 > add that host to `server.allowedHosts` in `frontend/vite.config.ts`.
 
+## Production / UAT (build-journal.dev)
+
+The dev compose above (source mounts, `uvicorn --reload`, Vite HMR) is **not** for
+deployment. Production and UAT use [`docker-compose.prod.yml`](./docker-compose.prod.yml),
+which builds two immutable images:
+
+| Service | Image stage | Role |
+|---|---|---|
+| `web` | `web` (Caddy) | Edge. Serves the **pre-built** SPA and reverse-proxies `/api`. Automatic HTTPS (Let's Encrypt) + HTTP/3 for the configured hostname. |
+| `api` | `api-runtime` | FastAPI on a non-root user, **single worker**, code baked into the image (no mounts, no reload). |
+
+One origin, so the browser makes same-origin calls (no CORS). Response headers —
+`X-Request-ID` and `WWW-Authenticate` — pass through the proxy unchanged.
+
+```bash
+cp .env.example .env
+# set MASTER_PLAN_SECRET (openssl rand -hex 32); SITE_ADDRESS defaults to build-journal.dev
+docker compose -f docker-compose.prod.yml up -d --build
+```
+
+**Configuration** (`.env`, see [`.env.example`](./.env.example)):
+
+| Var | Purpose |
+|---|---|
+| `MASTER_PLAN_SECRET` | **Required.** JWT signing key. The compose refuses to start if unset (`openssl rand -hex 32`); with `MASTER_PLAN_ENV=production` the API also refuses to boot without it. |
+| `SITE_ADDRESS` | Hostname Caddy serves and auto-provisions TLS for. `build-journal.dev` / `uat.build-journal.dev` → automatic HTTPS; `:80` → plain HTTP behind an external TLS terminator (cloud LB). |
+
+**Automatic HTTPS** needs this host reachable on public `:80` and `:443` with a DNS
+`A`/`AAAA` record for `SITE_ADDRESS` pointing at it. Issued certificates persist in
+the `caddy_data` volume — **back it up** to avoid re-issuing on every redeploy.
+
+> ⚠ **`--workers 1` is a correctness constraint, not a tuning choice.** The
+> repositories are JSON-file-backed and cache the whole store in memory between
+> writes; a second worker would keep a private copy and its writes would silently
+> clobber the other's. Concurrency requires first moving to a store that supports
+> concurrent writers (SQLite/Postgres) — see [`docker-compose.prod.yml`](./docker-compose.prod.yml).
+
+Persisted state lives in named volumes: `api_data` (the JSON stores) and
+`caddy_data` (TLS certificates/ACME state). Update with
+`docker compose -f docker-compose.prod.yml up -d --build`.
+
 ---
 
 Back to root [README.md](./README.md).

@@ -92,6 +92,8 @@ from master_plan.api.auth_schemas import (
 from master_plan.api.errors import install_error_handlers
 from master_plan.api.repository import ProjectRepository
 from master_plan.api.schemas import ProjectCreate, ProjectRecord, ProjectUpdate
+from master_plan.api import spaces
+from master_plan.api._io import clear_post_write_hooks, register_post_write_hook
 from master_plan.api.security import (
     API_KEY_PREFIX,
     TokenError,
@@ -126,6 +128,16 @@ __all__ = [
 
 # Access-token lifetime in seconds (1 hour).
 TOKEN_TTL_SECONDS = 3600
+
+
+# The four JSON stores, as (env var, default path). Used both by the repository
+# getters below and by the Spaces mirror so the set stays in one place.
+_STORE_ENV: tuple[tuple[str, str], ...] = (
+    ("MASTER_PLAN_DB", "./data/projects.json"),
+    ("MASTER_PLAN_WORKLOG_DB", "./data/work_entries.json"),
+    ("MASTER_PLAN_USERS_DB", "./data/users.json"),
+    ("MASTER_PLAN_APIKEYS_DB", "./data/api_keys.json"),
+)
 
 
 @lru_cache(maxsize=1)
@@ -287,6 +299,25 @@ def require_session_user(principal: Principal = Depends(get_principal)) -> UserR
     return principal.user
 
 
+def _configure_object_storage() -> None:
+    """Enable the Spaces write-through mirror when configured.
+
+    Downloads each JSON store from Spaces before the repositories read it, then
+    registers the upload hook so every subsequent write is mirrored. A no-op
+    when Spaces env vars are unset (the local-file store is used as-is). Safe to
+    call repeatedly: hooks are reset first, so re-creating the app re-syncs
+    without stacking duplicate uploads.
+    """
+    mirror = spaces.configure_from_env()
+    if mirror is None:
+        return
+    for env_key, default in _STORE_ENV:
+        mirror.add(os.environ.get(env_key, default))
+    mirror.sync_down()
+    clear_post_write_hooks()
+    register_post_write_hook(mirror.on_write)
+
+
 def _cors_origins() -> list[str]:
     """Resolve the CORS allow-list from ``MASTER_PLAN_CORS_ORIGINS``.
 
@@ -310,6 +341,12 @@ def create_app(
     """Build the FastAPI app, optionally with explicit repositories."""
     # Refuse to boot in production without a stable signing secret.
     verify_signing_secret()
+
+    # Hydrate the JSON stores from Spaces (if configured) before repositories
+    # read them, and mirror future writes back. No-op without Spaces env vars.
+    # Skipped when repositories are injected (tests supply their own stores).
+    if repository is None and work_repository is None and user_repository is None:
+        _configure_object_storage()
 
     app = FastAPI(title="master-plan-painel API", version="0.1.0")
 

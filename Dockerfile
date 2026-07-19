@@ -43,6 +43,29 @@ EXPOSE 5173
 CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
 
 
+# ======================================================================
+# Production / UAT stages (build-journal.dev). See docker-compose.prod.yml.
+# ======================================================================
+
+# --- Compile the SPA to static, hashed assets (no dev server) ---------
+FROM frontend-deps AS frontend-build
+
+WORKDIR /app/frontend
+
+# node_modules comes from frontend-deps; .dockerignore keeps the host copy out.
+COPY frontend ./
+# All API calls are relative ("/api/..."), so the bundle needs no baked-in URL —
+# it is served same-origin behind Caddy. Vite emits hashed assets into dist/.
+RUN npm run build
+
+
+# --- Edge: Caddy serves the SPA + reverse-proxies /api, with auto HTTPS ---
+FROM caddy:2.8-alpine AS web
+
+COPY --from=frontend-build /app/frontend/dist /srv
+COPY Caddyfile /etc/caddy/Caddyfile
+
+
 # --- Production API: immutable install, non-root, single worker -------
 #
 # ⚠ SINGLE WORKER IS A CORRECTNESS CONSTRAINT, NOT A PERFORMANCE KNOB.

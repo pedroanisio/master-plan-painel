@@ -30,6 +30,13 @@ services:
       MASTER_PLAN_WORKLOG_DB: /data/work_entries.json
       MASTER_PLAN_USERS_DB: /data/users.json
       MASTER_PLAN_APIKEYS_DB: /data/api_keys.json
+      # Production mode: the app refuses to boot without MASTER_PLAN_SECRET
+      # (defence-in-depth alongside the compose `?` guard below), so the image
+      # can never start with an ephemeral signing key even if run standalone.
+      MASTER_PLAN_ENV: production
+      # Same-origin behind Caddy, so no cross-origin access is needed. Empty
+      # disables the CORS middleware entirely.
+      MASTER_PLAN_CORS_ORIGINS: ""
       # REQUIRED — bearer-token signing key. No default on purpose: an unset or
       # shared value lets anyone forge a session. `?` fails the run if missing.
       # Generate: openssl rand -hex 32
