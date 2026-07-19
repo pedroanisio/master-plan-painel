@@ -267,8 +267,6 @@
           <button type="button" class="chip num" class:on={fMinutes === m}
             onclick={() => (fMinutes = m)} disabled={!hasProjects}>{m}</button>
         {/each}
-        <input class="min-input" type="number" min="1" step="5" bind:value={fMinutes}
-          disabled={!hasProjects} aria-label="Custom minutes" />
       </div>
     </div>
 
@@ -431,14 +429,12 @@
   .chip:hover:not(:disabled) { border-color: var(--border-strong); color: var(--text); background: var(--surface-hover); }
   .chip.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); box-shadow: var(--shadow-sm); }
   .chip.on:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); color: var(--on-accent); }
-  .min-input { width: 5rem; padding: 0.32rem 0.5rem; font-variant-numeric: tabular-nums; }
   .summary-field input { font-size: 1rem; }
   .ql-bottom { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.9rem; align-items: start; }
   @media (max-width: 560px) {
     .ql-top, .ql-bottom { grid-template-columns: 1fr; }
     /* Roomier touch targets for the chip toggles on phones. */
     .chip { min-height: 2.2rem; padding: 0.5rem 0.8rem; }
-    .min-input { min-height: 2.2rem; }
   }
   .toast { color: var(--success-text); font-weight: 600; font-size: 0.85rem; animation: fade var(--t) var(--ease-out) both; }
   button {

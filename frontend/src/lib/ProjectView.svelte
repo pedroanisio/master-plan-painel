@@ -15,6 +15,43 @@
   function isUrl(value: string): boolean {
     return /^https?:\/\//i.test(value);
   }
+
+  // Copy-to-clipboard with a transient "Copied ✓" confirmation per field.
+  let copied = $state<string | null>(null);
+  let copyTimer: ReturnType<typeof setTimeout> | undefined;
+
+  async function writeClipboard(text: string): Promise<boolean> {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch {
+      /* fall through to the legacy path */
+    }
+    // Fallback for non-secure contexts (plain http): execCommand('copy').
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      return ok;
+    } catch {
+      return false;
+    }
+  }
+
+  async function copy(text: string, key: string) {
+    if (await writeClipboard(text)) {
+      copied = key;
+      clearTimeout(copyTimer);
+      copyTimer = setTimeout(() => (copied = null), 1500);
+    }
+  }
 </script>
 
 <article class="card">
@@ -54,7 +91,7 @@
       <dt>Primary language</dt>
       <dd>{project.primary_language ?? "—"}</dd>
     </div>
-    <div>
+    <div class="repo">
       <dt>Repository</dt>
       <dd>
         {#if project.repository && isUrl(project.repository)}
@@ -89,13 +126,33 @@
   {/if}
 
   <section>
-    <h3>Purpose</h3>
+    <div class="sec-head">
+      <h3>Purpose</h3>
+      <button
+        class="copy"
+        class:done={copied === "purpose"}
+        onclick={() => copy(project.purpose, "purpose")}
+        title="Copy purpose"
+      >
+        {copied === "purpose" ? "Copied ✓" : "Copy"}
+      </button>
+    </div>
     <p class="prose">{project.purpose}</p>
   </section>
 
   {#if project.description}
     <section>
-      <h3>Description</h3>
+      <div class="sec-head">
+        <h3>Description</h3>
+        <button
+          class="copy"
+          class:done={copied === "description"}
+          onclick={() => copy(project.description ?? "", "description")}
+          title="Copy description"
+        >
+          {copied === "description" ? "Copied ✓" : "Copy"}
+        </button>
+      </div>
       <p class="prose">{project.description}</p>
     </section>
   {/if}
@@ -161,10 +218,25 @@
   }
   .id .dim { color: var(--muted); }
   h3 { margin: 0 0 0.5rem; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); font-weight: 700; }
+  .sec-head { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.5rem; }
+  .sec-head h3 { margin: 0; }
+  .copy {
+    font: inherit; font-size: 0.72rem; font-weight: 600; cursor: pointer;
+    padding: 0.2rem 0.55rem; border-radius: var(--r-full);
+    border: 1px solid var(--border); background: var(--bg-elevated); color: var(--muted);
+    transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease),
+      background var(--t-fast) var(--ease);
+  }
+  .copy:hover { color: var(--accent); border-color: color-mix(in oklab, var(--accent) 45%, var(--border)); background: var(--surface); }
+  .copy.done { color: var(--success-text); border-color: color-mix(in oklab, var(--success) 45%, var(--border)); }
   section { border-top: 1px solid var(--border); padding-top: 0.9rem; }
   .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.9rem 1.5rem; margin: 0; }
   .facts dt { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 0.2rem; font-weight: 600; }
-  .facts dd { margin: 0; font-weight: 600; word-break: break-word; }
+  .facts dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+  /* Give the repository URL the full row so it doesn't break mid-domain in a
+     narrow grid column; it only wraps (at any point) if genuinely too long. */
+  .facts .repo { grid-column: 1 / -1; }
+  .facts .repo a { overflow-wrap: anywhere; }
   .facts a {
     color: var(--accent); text-decoration: none;
     border-bottom: 1.5px solid transparent; transition: border-color var(--t) var(--ease), color var(--t-fast) var(--ease);
