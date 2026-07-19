@@ -18,10 +18,7 @@ export function createWorkEntry(input: WorkEntryInput): Promise<WorkEntryRecord>
   return apiSend<WorkEntryRecord>("POST", BASE, input);
 }
 
-export function updateWorkEntry(
-  id: string,
-  input: WorkEntryInput,
-): Promise<WorkEntryRecord> {
+export function updateWorkEntry(id: string, input: WorkEntryInput): Promise<WorkEntryRecord> {
   return apiSend<WorkEntryRecord>("PUT", `${BASE}/${encodeURIComponent(id)}`, input);
 }
 

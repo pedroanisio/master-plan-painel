@@ -32,8 +32,12 @@
     background: var(--brand-gradient);
     color: #fff;
     flex: none;
-    box-shadow: var(--brand-glow), inset 0 1px 0 rgba(255, 255, 255, 0.28);
-    transition: transform var(--t) var(--ease-spring), box-shadow var(--t) var(--ease);
+    box-shadow:
+      var(--brand-glow),
+      inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    transition:
+      transform var(--t) var(--ease-spring),
+      box-shadow var(--t) var(--ease);
   }
   .logo::after {
     /* faint top-left sheen for a physical, app-icon feel */
@@ -44,6 +48,12 @@
     background: radial-gradient(120% 100% at 20% 0%, rgba(255, 255, 255, 0.35), transparent 55%);
     pointer-events: none;
   }
-  .logo { position: relative; }
-  .logo svg { width: 60%; height: 60%; position: relative; }
+  .logo {
+    position: relative;
+  }
+  .logo svg {
+    width: 60%;
+    height: 60%;
+    position: relative;
+  }
 </style>

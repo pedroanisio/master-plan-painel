@@ -1,0 +1,5 @@
+# Build output and vendored code — never format these.
+dist/
+node_modules/
+.svelte-kit/
+package-lock.json

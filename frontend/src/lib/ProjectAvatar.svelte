@@ -47,14 +47,28 @@
 
 <style>
   .avatar {
-    display: inline-flex; align-items: center; justify-content: center;
-    flex: none; user-select: none; line-height: 1;
-    font-weight: 800; letter-spacing: -0.03em; color: var(--on);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    user-select: none;
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--on);
     background:
-      radial-gradient(120% 120% at 25% 15%, color-mix(in oklab, #fff 22%, transparent), transparent 60%),
+      radial-gradient(
+        120% 120% at 25% 15%,
+        color-mix(in oklab, #fff 22%, transparent),
+        transparent 60%
+      ),
       linear-gradient(140deg, var(--c), color-mix(in oklab, var(--c) 68%, #000));
     border: 1px solid color-mix(in oklab, var(--c) 55%, #000);
-    box-shadow: var(--shadow-sm), inset 0 1px 0 color-mix(in oklab, #fff 25%, transparent);
-    transition: transform var(--t) var(--ease-spring), box-shadow var(--t) var(--ease);
+    box-shadow:
+      var(--shadow-sm),
+      inset 0 1px 0 color-mix(in oklab, #fff 25%, transparent);
+    transition:
+      transform var(--t) var(--ease-spring),
+      box-shadow var(--t) var(--ease);
   }
 </style>

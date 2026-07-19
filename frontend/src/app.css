@@ -23,15 +23,17 @@
   /* -- Brand & accent -------------------------------------------------- */
   /* Signature identity: a violet→blue "blurple". The gradient is the brand;
      --accent is its solid mid-tone that every component reads from. */
-  --brand-1: #8b5cf6;                 /* violet  */
-  --brand-2: #3b82f6;                 /* blue    */
+  --brand-1: #8b5cf6; /* violet  */
+  --brand-2: #3b82f6; /* blue    */
   --brand-gradient: linear-gradient(135deg, var(--brand-1) 0%, var(--brand-2) 100%);
-  --brand-gradient-soft: linear-gradient(135deg,
+  --brand-gradient-soft: linear-gradient(
+    135deg,
     color-mix(in oklab, var(--brand-1) 14%, transparent),
-    color-mix(in oklab, var(--brand-2) 14%, transparent));
+    color-mix(in oklab, var(--brand-2) 14%, transparent)
+  );
   --brand-glow: 0 10px 26px -8px color-mix(in oklab, var(--accent) 60%, transparent);
 
-  --accent: #635bff;                  /* blurple mid-tone */
+  --accent: #635bff; /* blurple mid-tone */
   --accent-hover: #524bef;
   --accent-active: #443dd6;
   --accent-soft: #ececff;
@@ -50,7 +52,7 @@
   --shadow-xs: 0 1px 2px rgba(16, 22, 40, 0.04);
   --shadow-sm: 0 1px 2px rgba(16, 22, 40, 0.05), 0 1px 3px rgba(16, 22, 40, 0.05);
   --shadow-md: 0 2px 4px rgba(16, 22, 40, 0.05), 0 4px 12px rgba(16, 22, 40, 0.07);
-  --shadow-lg: 0 8px 24px rgba(16, 22, 40, 0.10), 0 2px 6px rgba(16, 22, 40, 0.06);
+  --shadow-lg: 0 8px 24px rgba(16, 22, 40, 0.1), 0 2px 6px rgba(16, 22, 40, 0.06);
   --ring: 0 0 0 3px color-mix(in oklab, var(--accent) 32%, transparent);
   --ring-danger: 0 0 0 3px color-mix(in oklab, var(--danger) 30%, transparent);
 
@@ -122,11 +124,17 @@
   }
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 /* Display face on all headings — the components' scoped rules set size/weight
    but not family, so this gives the whole app one typographic voice. */
-h1, h2, h3 { font-family: var(--font-display); }
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+}
 
 body {
   margin: 0;
@@ -134,8 +142,16 @@ body {
   /* Signature brand wash: a violet bloom top-left, a blue bloom top-right,
      dissolving into the base surface. This is the identity's ambient layer. */
   background:
-    radial-gradient(760px 420px at 12% -8%, color-mix(in oklab, var(--brand-1) 16%, transparent), transparent 60%),
-    radial-gradient(820px 460px at 92% -12%, color-mix(in oklab, var(--brand-2) 15%, transparent), transparent 62%),
+    radial-gradient(
+      760px 420px at 12% -8%,
+      color-mix(in oklab, var(--brand-1) 16%, transparent),
+      transparent 60%
+    ),
+    radial-gradient(
+      820px 460px at 92% -12%,
+      color-mix(in oklab, var(--brand-2) 15%, transparent),
+      transparent 62%
+    ),
     var(--bg);
   background-attachment: fixed;
 }
@@ -153,15 +169,22 @@ body {
 }
 
 /* Native form controls pick up the accent for checks, carets, sliders. */
-:root { accent-color: var(--accent); }
+:root {
+  accent-color: var(--accent);
+}
 
 /* Refined scrollbars (WebKit + Firefox) — thin, self-effacing. */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--border-strong) transparent;
 }
-*::-webkit-scrollbar { width: 10px; height: 10px; }
-*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
 *::-webkit-scrollbar-thumb {
   background: var(--border-strong);
   border-radius: var(--r-full);
@@ -175,7 +198,9 @@ body {
 
 /* Honour reduced-motion: strip transitions/animations but keep the ring. */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
@@ -185,10 +210,20 @@ body {
 
 /* Shared entrance used by cards/panels as they mount. */
 @keyframes rise {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 @keyframes fade {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }

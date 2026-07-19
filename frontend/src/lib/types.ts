@@ -3,21 +3,50 @@
 import { PALETTE } from "./palette";
 
 export const LANGUAGES = [
-  "python", "typescript", "javascript", "rust", "go", "java", "kotlin",
-  "swift", "c", "cpp", "csharp", "ruby", "php", "scala", "elixir", "haskell",
-  "lua", "r", "julia", "shell", "sql", "html", "css", "other",
+  "python",
+  "typescript",
+  "javascript",
+  "rust",
+  "go",
+  "java",
+  "kotlin",
+  "swift",
+  "c",
+  "cpp",
+  "csharp",
+  "ruby",
+  "php",
+  "scala",
+  "elixir",
+  "haskell",
+  "lua",
+  "r",
+  "julia",
+  "shell",
+  "sql",
+  "html",
+  "css",
+  "other",
 ] as const;
 export type Language = (typeof LANGUAGES)[number];
 
 export const ECOSYSTEMS = [
-  "pypi", "npm", "cargo", "go_modules", "maven", "nuget", "rubygems",
-  "packagist", "hex", "hackage", "system", "other",
+  "pypi",
+  "npm",
+  "cargo",
+  "go_modules",
+  "maven",
+  "nuget",
+  "rubygems",
+  "packagist",
+  "hex",
+  "hackage",
+  "system",
+  "other",
 ] as const;
 export type PackageEcosystem = (typeof ECOSYSTEMS)[number];
 
-export const SCOPES = [
-  "runtime", "dev", "test", "build", "optional",
-] as const;
+export const SCOPES = ["runtime", "dev", "test", "build", "optional"] as const;
 export type DependencyScope = (typeof SCOPES)[number];
 
 export interface Package {

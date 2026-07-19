@@ -29,10 +29,14 @@
 
   function sortValue(p: ProjectRecord, key: SortKey): string | number {
     switch (key) {
-      case "name": return p.name.toLowerCase();
-      case "domain": return `${p.domain}/${p.sub_domain ?? ""}`.toLowerCase();
-      case "color_id": return p.color_id;
-      case "packages": return p.packages.length;
+      case "name":
+        return p.name.toLowerCase();
+      case "domain":
+        return `${p.domain}/${p.sub_domain ?? ""}`.toLowerCase();
+      case "color_id":
+        return p.color_id;
+      case "packages":
+        return p.packages.length;
     }
   }
 
@@ -41,9 +45,15 @@
     if (!q) return projects;
     return projects.filter((p) => {
       const hay = [
-        p.name, p.domain, p.sub_domain ?? "", p.purpose,
-        p.languages.join(" "), p.tags.join(" "),
-      ].join(" ").toLowerCase();
+        p.name,
+        p.domain,
+        p.sub_domain ?? "",
+        p.purpose,
+        p.languages.join(" "),
+        p.tags.join(" "),
+      ]
+        .join(" ")
+        .toLowerCase();
       return hay.includes(q);
     });
   });
@@ -103,7 +113,9 @@
         <button class="col-h" onclick={() => sortBy("name")}>Name{arrow("name")}</button>
         <button class="col-h" onclick={() => sortBy("domain")}>Domain{arrow("domain")}</button>
         <span>Languages</span>
-        <button class="col-h right" onclick={() => sortBy("packages")}>Pkgs{arrow("packages")}</button>
+        <button class="col-h right" onclick={() => sortBy("packages")}
+          >Pkgs{arrow("packages")}</button
+        >
         <span>Purpose</span>
         <span class="right">Actions</span>
       </div>
@@ -147,7 +159,9 @@
         <button disabled={page === 0} onclick={() => (page -= 1)}>‹ Prev</button>
         <span class="pageno">Page {page + 1} / {pageCount}</span>
         <button disabled={page >= pageCount - 1} onclick={() => (page += 1)}>Next ›</button>
-        <button disabled={page >= pageCount - 1} onclick={() => (page = pageCount - 1)}>Last »</button>
+        <button disabled={page >= pageCount - 1} onclick={() => (page = pageCount - 1)}
+          >Last »</button
+        >
       </div>
     </div>
   {/if}
@@ -155,112 +169,302 @@
 
 <style>
   .empty {
-    color: var(--muted); padding: 2rem 1.5rem; text-align: center;
-    border: 1px dashed var(--border); border-radius: var(--r-lg); background: var(--surface);
+    color: var(--muted);
+    padding: 2rem 1.5rem;
+    text-align: center;
+    border: 1px dashed var(--border);
+    border-radius: var(--r-lg);
+    background: var(--surface);
   }
-  .toolbar { display: flex; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem; }
+  .toolbar {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 0.75rem;
+  }
   .search {
-    flex: 1; font: inherit; padding: 0.5rem 0.75rem;
-    border: 1px solid var(--border); border-radius: var(--r-md);
-    background: var(--bg-elevated); color: var(--text);
-    transition: border-color var(--t) var(--ease), box-shadow var(--t) var(--ease);
+    flex: 1;
+    font: inherit;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    background: var(--bg-elevated);
+    color: var(--text);
+    transition:
+      border-color var(--t) var(--ease),
+      box-shadow var(--t) var(--ease);
   }
-  .search:hover { border-color: var(--border-strong); }
-  .search:focus-visible { border-color: var(--accent); box-shadow: var(--ring); }
-  .page-size { display: flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; color: var(--muted); }
+  .search:hover {
+    border-color: var(--border-strong);
+  }
+  .search:focus-visible {
+    border-color: var(--accent);
+    box-shadow: var(--ring);
+  }
+  .page-size {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
   .page-size select {
-    font: inherit; padding: 0.35rem 0.5rem; border: 1px solid var(--border);
-    border-radius: var(--r-sm); background: var(--bg-elevated); color: var(--text);
-    cursor: pointer; transition: border-color var(--t) var(--ease);
+    font: inherit;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    background: var(--bg-elevated);
+    color: var(--text);
+    cursor: pointer;
+    transition: border-color var(--t) var(--ease);
   }
-  .page-size select:hover { border-color: var(--border-strong); }
+  .page-size select:hover {
+    border-color: var(--border-strong);
+  }
 
   .table {
-    display: flex; flex-direction: column;
-    border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden;
-    background: var(--bg-elevated); box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    background: var(--bg-elevated);
+    box-shadow: var(--shadow-sm);
   }
-  .thead, .trow {
+  .thead,
+  .trow {
     display: grid;
     grid-template-columns: 1.3fr 1.2fr 1.4fr 0.6fr 2fr auto;
-    gap: 0.75rem; align-items: center; padding: 0.65rem 0.9rem;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.65rem 0.9rem;
   }
-  .thead { background: var(--surface); font-weight: 700; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted); }
+  .thead {
+    background: var(--surface);
+    font-weight: 700;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--muted);
+  }
   .col-h {
-    font: inherit; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em;
-    font-size: 0.78rem; color: var(--muted); background: none; border: none;
-    padding: 0; cursor: pointer; text-align: left;
+    font: inherit;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-size: 0.78rem;
+    color: var(--muted);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
     transition: color var(--t-fast) var(--ease);
   }
-  .col-h:hover { color: var(--text); }
-  .col-h.right { text-align: right; }
+  .col-h:hover {
+    color: var(--text);
+  }
+  .col-h.right {
+    text-align: right;
+  }
   .trow {
-    border-top: 1px solid var(--border); font-size: 0.9rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.9rem;
     transition: background var(--t-fast) var(--ease);
   }
-  .trow:hover { background: var(--surface); }
+  .trow:hover {
+    background: var(--surface);
+  }
   .trow.active {
     background: var(--accent-soft);
     box-shadow: inset 3px 0 0 var(--accent);
   }
-  .name { font-weight: 600; display: flex; flex-direction: column; align-items: flex-start; gap: 0.15rem; }
-  .name-line { display: flex; align-items: center; gap: 0.55rem; }
+  .name {
+    font-weight: 600;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.15rem;
+  }
+  .name-line {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+  }
   .link {
-    background: none; border: none; padding: 0; font: inherit; font-weight: 600;
-    color: var(--accent); cursor: pointer; text-align: left;
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    font-weight: 600;
+    color: var(--accent);
+    cursor: pointer;
+    text-align: left;
     background-image: linear-gradient(var(--accent), var(--accent));
-    background-size: 0% 1.5px; background-position: 0 100%; background-repeat: no-repeat;
-    transition: background-size var(--t) var(--ease-out), color var(--t-fast) var(--ease);
+    background-size: 0% 1.5px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition:
+      background-size var(--t) var(--ease-out),
+      color var(--t-fast) var(--ease);
   }
-  .link:hover { color: var(--accent-hover); background-size: 100% 1.5px; }
-  .tags { font-weight: 400; font-size: 0.75rem; color: var(--muted); }
-  .langs { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+  .link:hover {
+    color: var(--accent-hover);
+    background-size: 100% 1.5px;
+  }
+  .tags {
+    font-weight: 400;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+  .langs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
   .pill {
-    font-size: 0.72rem; padding: 0.1rem 0.5rem;
-    border: 1px solid var(--border); border-radius: var(--r-full);
-    transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+    font-size: 0.72rem;
+    padding: 0.1rem 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--r-full);
+    transition:
+      background var(--t-fast) var(--ease),
+      border-color var(--t-fast) var(--ease);
   }
-  .pill.primary { background: var(--accent-soft); border-color: color-mix(in oklab, var(--accent) 40%, transparent); color: var(--accent); font-weight: 600; }
-  .purpose { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .right { text-align: right; }
-  .actions { display: flex; gap: 0.4rem; justify-content: flex-end; }
+  .pill.primary {
+    background: var(--accent-soft);
+    border-color: color-mix(in oklab, var(--accent) 40%, transparent);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .purpose {
+    color: var(--muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .right {
+    text-align: right;
+  }
+  .actions {
+    display: flex;
+    gap: 0.4rem;
+    justify-content: flex-end;
+  }
   button {
-    font: inherit; font-size: 0.82rem; font-weight: 600; cursor: pointer;
-    padding: 0.35rem 0.7rem; border-radius: var(--r-sm);
-    border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text);
-    transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease),
-      color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0.35rem 0.7rem;
+    border-radius: var(--r-sm);
+    border: 1px solid var(--border);
+    background: var(--bg-elevated);
+    color: var(--text);
+    transition:
+      background var(--t-fast) var(--ease),
+      border-color var(--t-fast) var(--ease),
+      color var(--t-fast) var(--ease),
+      transform var(--t-fast) var(--ease);
   }
-  button:hover { background: var(--surface-hover); border-color: var(--border-strong); }
-  button:active { transform: translateY(1px); }
-  button.danger { color: var(--danger); border-color: color-mix(in oklab, var(--danger) 45%, var(--border)); }
-  button.danger:hover { background: var(--danger-soft); border-color: var(--danger); }
-  .pager { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 0.75rem; flex-wrap: wrap; }
-  .count { font-size: 0.82rem; color: var(--muted); font-variant-numeric: tabular-nums; }
-  .pager-btns { display: flex; align-items: center; gap: 0.35rem; }
-  .pageno { font-size: 0.82rem; color: var(--muted); padding: 0 0.4rem; font-variant-numeric: tabular-nums; }
-  .pager-btns button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
-  .pager-btns button:disabled:hover { background: var(--bg-elevated); border-color: var(--border); }
+  button:hover {
+    background: var(--surface-hover);
+    border-color: var(--border-strong);
+  }
+  button:active {
+    transform: translateY(1px);
+  }
+  button.danger {
+    color: var(--danger);
+    border-color: color-mix(in oklab, var(--danger) 45%, var(--border));
+  }
+  button.danger:hover {
+    background: var(--danger-soft);
+    border-color: var(--danger);
+  }
+  .pager {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .count {
+    font-size: 0.82rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .pager-btns {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .pageno {
+    font-size: 0.82rem;
+    color: var(--muted);
+    padding: 0 0.4rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .pager-btns button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+  }
+  .pager-btns button:disabled:hover {
+    background: var(--bg-elevated);
+    border-color: var(--border);
+  }
 
   /* Mobile: the grid table restacks into a labelled card per project. */
   @media (max-width: 720px) {
-    .toolbar { flex-wrap: wrap; }
-    .thead { display: none; }
-    .trow { grid-template-columns: 1fr; gap: 0.35rem; padding: 0.85rem 0.9rem; }
-    .trow > span.right { text-align: left; }
-    .purpose { white-space: normal; }
+    .toolbar {
+      flex-wrap: wrap;
+    }
+    .thead {
+      display: none;
+    }
+    .trow {
+      grid-template-columns: 1fr;
+      gap: 0.35rem;
+      padding: 0.85rem 0.9rem;
+    }
+    .trow > span.right {
+      text-align: left;
+    }
+    .purpose {
+      white-space: normal;
+    }
     .domain[data-label]::before,
     .pkgs[data-label]::before {
       content: attr(data-label) ": ";
-      color: var(--muted); font-weight: 600; font-size: 0.75rem;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.75rem;
     }
     /* Comfortable touch targets: the name link is the primary action. */
-    .link { font-size: 1rem; padding: 0.15rem 0; min-height: 1.9rem; }
-    .actions { justify-content: flex-start; flex-wrap: wrap; margin-top: 0.35rem; gap: 0.5rem; }
-    .actions button { padding: 0.5rem 0.95rem; }
+    .link {
+      font-size: 1rem;
+      padding: 0.15rem 0;
+      min-height: 1.9rem;
+    }
+    .actions {
+      justify-content: flex-start;
+      flex-wrap: wrap;
+      margin-top: 0.35rem;
+      gap: 0.5rem;
+    }
+    .actions button {
+      padding: 0.5rem 0.95rem;
+    }
   }
   @media (max-width: 380px) {
-    .pager { justify-content: center; }
-    .pager-btns { flex-wrap: wrap; justify-content: center; }
+    .pager {
+      justify-content: center;
+    }
+    .pager-btns {
+      flex-wrap: wrap;
+      justify-content: center;
+    }
   }
 </style>

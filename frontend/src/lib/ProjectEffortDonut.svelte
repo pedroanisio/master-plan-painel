@@ -42,13 +42,33 @@
 </div>
 
 <style>
-  .donut { position: relative; height: 240px; }
-  .center {
-    position: absolute; inset: 0; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; pointer-events: none;
+  .donut {
+    position: relative;
+    height: 240px;
   }
-  .center .v { font-size: 1.15rem; font-weight: 800; font-variant-numeric: tabular-nums; }
-  .center .k { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+  .center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+  .center .v {
+    font-size: 1.15rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+  .center .k {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
   /* Bridge LayerChart's SVG text to our theme (it ships no colours without a preset). */
-  .donut :global(text) { fill: var(--text); font-size: 0.72rem; }
+  .donut :global(text) {
+    fill: var(--text);
+    font-size: 0.72rem;
+  }
 </style>

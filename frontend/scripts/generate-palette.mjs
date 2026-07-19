@@ -35,7 +35,9 @@ function oklabToLinearSrgb(L, a, b) {
   const l_ = L + 0.3963377774 * a + 0.2158037573 * b;
   const m_ = L - 0.1055613458 * a - 0.0638541728 * b;
   const s_ = L - 0.0894841775 * a - 1.291485548 * b;
-  const l = l_ ** 3, m = m_ ** 3, s = s_ ** 3;
+  const l = l_ ** 3,
+    m = m_ ** 3,
+    s = s_ ** 3;
   return [
     4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
     -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
@@ -43,9 +45,7 @@ function oklabToLinearSrgb(L, a, b) {
   ];
 }
 const inGamut = (r, g, b, eps = 1e-4) =>
-  r >= -eps && r <= 1 + eps &&
-  g >= -eps && g <= 1 + eps &&
-  b >= -eps && b <= 1 + eps;
+  r >= -eps && r <= 1 + eps && g >= -eps && g <= 1 + eps && b >= -eps && b <= 1 + eps;
 
 // --- candidate set: every in-gamut grid point in the lightness band --------
 const candidates = [];
@@ -67,8 +67,10 @@ const d2 = (p, q) => (p.L - q.L) ** 2 + (p.a - q.a) ** 2 + (p.b - q.b) ** 2;
 // Deterministic seed: maximum-chroma candidate (tie-break by L, then b).
 let seed = 0;
 for (let i = 1; i < candidates.length; i++) {
-  const c = candidates[i], s = candidates[seed];
-  const cc = c.a * c.a + c.b * c.b, sc = s.a * s.a + s.b * s.b;
+  const c = candidates[i],
+    s = candidates[seed];
+  const cc = c.a * c.a + c.b * c.b,
+    sc = s.a * s.a + s.b * s.b;
   if (cc > sc || (cc === sc && (c.L > s.L || (c.L === s.L && c.b > s.b)))) seed = i;
 }
 
@@ -119,5 +121,5 @@ const target = resolve(here, "..", "src", "lib", "palette.ts");
 writeFileSync(target, out, "utf8");
 console.log(
   `wrote ${target}\n  ${N} colors from ${candidates.length} candidates` +
-  `\n  worst-case OKLab ΔE = ${minDE.toFixed(4)}`,
+    `\n  worst-case OKLab ΔE = ${minDE.toFixed(4)}`,
 );

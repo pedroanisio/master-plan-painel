@@ -1,8 +1,18 @@
 // Types mirroring the backend work-log models (master_plan.models.work_log).
 
 export const WORK_KINDS = [
-  "feature", "bugfix", "refactor", "docs", "test", "review", "research",
-  "planning", "infra", "maintenance", "meeting", "other",
+  "feature",
+  "bugfix",
+  "refactor",
+  "docs",
+  "test",
+  "review",
+  "research",
+  "planning",
+  "infra",
+  "maintenance",
+  "meeting",
+  "other",
 ] as const;
 export type WorkKind = (typeof WORK_KINDS)[number];
 

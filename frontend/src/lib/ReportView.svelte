@@ -49,10 +49,7 @@
     try {
       report = await getWorkReport(days ?? undefined, project || undefined);
     } catch (e) {
-      error =
-        e instanceof ApiError
-          ? e.message
-          : "Cannot reach the API — is the backend running?";
+      error = e instanceof ApiError ? e.message : "Cannot reach the API — is the backend running?";
     } finally {
       loading = false;
     }
@@ -132,7 +129,9 @@
   {:else if report}
     <div class="range">
       <span class="muted">
-        {report.from_date ? `${report.from_date} → ${report.to_date}` : `All time → ${report.to_date}`}
+        {report.from_date
+          ? `${report.from_date} → ${report.to_date}`
+          : `All time → ${report.to_date}`}
       </span>
       {#if report.project}
         {@const rp = report.project}
@@ -151,11 +150,25 @@
       <p class="muted">No work logged in this period.</p>
     {:else}
       <div class="cards">
-        <div class="card"><span class="k">Total</span><span class="v">{formatMinutes(report.total_minutes)}</span></div>
-        <div class="card"><span class="k">Entries</span><span class="v">{report.entry_count}</span></div>
-        <div class="card"><span class="k">Active days</span><span class="v">{report.active_days}</span></div>
-        <div class="card"><span class="k">Avg / active day</span><span class="v">{formatMinutes(Math.round(report.avg_minutes_per_active_day))}</span></div>
-        <div class="card"><span class="k">Busiest day</span><span class="v">{report.busiest_day ? shortDay(report.busiest_day) : "—"}</span></div>
+        <div class="card">
+          <span class="k">Total</span><span class="v">{formatMinutes(report.total_minutes)}</span>
+        </div>
+        <div class="card">
+          <span class="k">Entries</span><span class="v">{report.entry_count}</span>
+        </div>
+        <div class="card">
+          <span class="k">Active days</span><span class="v">{report.active_days}</span>
+        </div>
+        <div class="card">
+          <span class="k">Avg / active day</span><span class="v"
+            >{formatMinutes(Math.round(report.avg_minutes_per_active_day))}</span
+          >
+        </div>
+        <div class="card">
+          <span class="k">Busiest day</span><span class="v"
+            >{report.busiest_day ? shortDay(report.busiest_day) : "—"}</span
+          >
+        </div>
         <div class="card">
           <span class="k">Top project</span>
           <span class="v small">
@@ -180,7 +193,10 @@
           {/each}
         </div>
         {#if daily.length}
-          <div class="axis"><span>{shortDay(daily[0].key)}</span><span>{shortDay(daily[daily.length - 1].key)}</span></div>
+          <div class="axis">
+            <span>{shortDay(daily[0].key)}</span><span>{shortDay(daily[daily.length - 1].key)}</span
+            >
+          </div>
         {/if}
       </div>
 
@@ -205,12 +221,23 @@
               <div class="cat-row">
                 <span class="cat-name">
                   <span class="dot" style={`background:${projColor(name)}`}></span>
-                  <button class="name-link" title={`Scope report to ${name}`} onclick={() => scopeTo(name)}>{name}</button>
+                  <button
+                    class="name-link"
+                    title={`Scope report to ${name}`}
+                    onclick={() => scopeTo(name)}>{name}</button
+                  >
                   {#if knownProjects.has(name)}
-                    <button class="open" title={`Open ${name}`} onclick={() => openProject(name)}>↗</button>
+                    <button class="open" title={`Open ${name}`} onclick={() => openProject(name)}
+                      >↗</button
+                    >
                   {/if}
                 </span>
-                <span class="cat-track"><span class="cat-fill" style={`width:${(mins / maxOf(report.by_project)) * 100}%; background:${projColor(name)}`}></span></span>
+                <span class="cat-track"
+                  ><span
+                    class="cat-fill"
+                    style={`width:${(mins / maxOf(report.by_project)) * 100}%; background:${projColor(name)}`}
+                  ></span></span
+                >
                 <span class="cat-val">{formatMinutes(mins)}</span>
               </div>
             {/each}
@@ -222,7 +249,12 @@
             {#each rows(report.by_kind) as [name, mins] (name)}
               <div class="cat-row">
                 <span class="cat-name">{name}</span>
-                <span class="cat-track"><span class="cat-fill accent" style={`width:${(mins / maxOf(report.by_kind)) * 100}%`}></span></span>
+                <span class="cat-track"
+                  ><span
+                    class="cat-fill accent"
+                    style={`width:${(mins / maxOf(report.by_kind)) * 100}%`}
+                  ></span></span
+                >
                 <span class="cat-val">{formatMinutes(mins)}</span>
               </div>
             {/each}
@@ -234,92 +266,361 @@
 </div>
 
 <style>
-  .report { display: flex; flex-direction: column; gap: 1.25rem; animation: rise var(--t-slow) var(--ease-out) both; }
-  .controls { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .report {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    animation: rise var(--t-slow) var(--ease-out) both;
+  }
+  .controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
   .periods {
-    display: flex; gap: 0.2rem; padding: 0.25rem;
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md);
+    display: flex;
+    gap: 0.2rem;
+    padding: 0.25rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
   }
   .periods button {
-    font: inherit; font-weight: 600; font-size: 0.85rem; cursor: pointer;
-    padding: 0.4rem 0.9rem; border-radius: var(--r-sm);
-    border: 1px solid transparent; background: transparent; color: var(--muted);
-    transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+    font: inherit;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    padding: 0.4rem 0.9rem;
+    border-radius: var(--r-sm);
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--muted);
+    transition:
+      background var(--t-fast) var(--ease),
+      color var(--t-fast) var(--ease),
+      box-shadow var(--t-fast) var(--ease);
   }
-  .periods button:hover { color: var(--text); background: var(--surface-hover); }
-  .periods button.active { color: var(--on-accent); background: var(--accent); border-color: var(--accent); box-shadow: var(--shadow-sm); }
-  .proj { display: flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; color: var(--muted); }
-  .proj select {
-    font: inherit; padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: var(--r-sm);
-    background: var(--bg-elevated); color: var(--text); cursor: pointer;
-    transition: border-color var(--t) var(--ease), box-shadow var(--t) var(--ease);
+  .periods button:hover {
+    color: var(--text);
+    background: var(--surface-hover);
   }
-  .proj select:hover { border-color: var(--border-strong); }
-  .proj select:focus-visible { border-color: var(--accent); box-shadow: var(--ring); outline: none; }
-  .range { margin: 0; font-size: 0.85rem; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
-  .scoped { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.2rem 0.6rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-full); }
-  .scoped strong { font-weight: 700; }
-  .link { font: inherit; font-size: 0.8rem; font-weight: 600; background: none; border: none; color: var(--accent); cursor: pointer; padding: 0; transition: color var(--t-fast) var(--ease); }
-  .link:hover { text-decoration: underline; text-underline-offset: 2px; color: var(--accent-hover); }
-  .link.clear { color: var(--muted); }
-  .hint { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--faint); font-size: 0.72rem; }
-  .muted { color: var(--muted); }
-  .banner {
-    background: var(--danger-soft); border: 1px solid color-mix(in oklab, var(--danger) 45%, transparent);
-    color: var(--danger-text); padding: 0.7rem 0.9rem; border-radius: var(--r-md); box-shadow: var(--shadow-sm);
-  }
-
-  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; }
-  .card {
-    background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--r-lg);
-    padding: 0.9rem 1.05rem; display: flex; flex-direction: column; gap: 0.3rem;
+  .periods button.active {
+    color: var(--on-accent);
+    background: var(--accent);
+    border-color: var(--accent);
     box-shadow: var(--shadow-sm);
-    transition: transform var(--t) var(--ease), box-shadow var(--t) var(--ease), border-color var(--t) var(--ease);
   }
-  .card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--border-strong); }
-  .card .k { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); font-weight: 600; }
-  .card .v { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
-  .card .v.small { font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem; }
-  .dot { width: 0.7rem; height: 0.7rem; border-radius: var(--r-xs); border: 1px solid var(--border); flex: none; display: inline-block; box-shadow: var(--shadow-xs); }
+  .proj {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  .proj select {
+    font: inherit;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    background: var(--bg-elevated);
+    color: var(--text);
+    cursor: pointer;
+    transition:
+      border-color var(--t) var(--ease),
+      box-shadow var(--t) var(--ease);
+  }
+  .proj select:hover {
+    border-color: var(--border-strong);
+  }
+  .proj select:focus-visible {
+    border-color: var(--accent);
+    box-shadow: var(--ring);
+    outline: none;
+  }
+  .range {
+    margin: 0;
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .scoped {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.2rem 0.6rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-full);
+  }
+  .scoped strong {
+    font-weight: 700;
+  }
+  .link {
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: none;
+    border: none;
+    color: var(--accent);
+    cursor: pointer;
+    padding: 0;
+    transition: color var(--t-fast) var(--ease);
+  }
+  .link:hover {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    color: var(--accent-hover);
+  }
+  .link.clear {
+    color: var(--muted);
+  }
+  .hint {
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--faint);
+    font-size: 0.72rem;
+  }
+  .muted {
+    color: var(--muted);
+  }
+  .banner {
+    background: var(--danger-soft);
+    border: 1px solid color-mix(in oklab, var(--danger) 45%, transparent);
+    color: var(--danger-text);
+    padding: 0.7rem 0.9rem;
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-sm);
+  }
 
-  .panel { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 1.1rem 1.35rem; box-shadow: var(--shadow-sm); }
-  .panel h3 { margin: 0 0 0.85rem; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); font-weight: 700; }
-  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+  }
+  .card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 0.9rem 1.05rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    box-shadow: var(--shadow-sm);
+    transition:
+      transform var(--t) var(--ease),
+      box-shadow var(--t) var(--ease),
+      border-color var(--t) var(--ease);
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--border-strong);
+  }
+  .card .k {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .card .v {
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+  }
+  .card .v.small {
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .dot {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: var(--r-xs);
+    border: 1px solid var(--border);
+    flex: none;
+    display: inline-block;
+    box-shadow: var(--shadow-xs);
+  }
 
-  .bars { display: grid; grid-template-columns: repeat(var(--n), 1fr); align-items: end; gap: 2px; height: 150px; }
-  .bar-col { height: 100%; display: flex; align-items: flex-end; }
+  .panel {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 1.1rem 1.35rem;
+    box-shadow: var(--shadow-sm);
+  }
+  .panel h3 {
+    margin: 0 0 0.85rem;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    font-weight: 700;
+  }
+  .grid2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+
+  .bars {
+    display: grid;
+    grid-template-columns: repeat(var(--n), 1fr);
+    align-items: end;
+    gap: 2px;
+    height: 150px;
+  }
+  .bar-col {
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+  }
   .bar {
-    width: 100%; min-height: 2px; border-radius: 3px 3px 0 0;
+    width: 100%;
+    min-height: 2px;
+    border-radius: 3px 3px 0 0;
     background: linear-gradient(var(--accent), color-mix(in oklab, var(--accent) 72%, transparent));
-    transition: filter var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+    transition:
+      filter var(--t-fast) var(--ease),
+      transform var(--t-fast) var(--ease);
     transform-origin: bottom;
   }
-  .bar-col:hover .bar { filter: brightness(1.15) saturate(1.1); transform: scaleY(1.02); }
-  .axis { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--muted); margin-top: 0.4rem; font-variant-numeric: tabular-nums; }
+  .bar-col:hover .bar {
+    filter: brightness(1.15) saturate(1.1);
+    transform: scaleY(1.02);
+  }
+  .axis {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 0.4rem;
+    font-variant-numeric: tabular-nums;
+  }
 
-  .cat { display: flex; flex-direction: column; gap: 0.5rem; max-height: 300px; overflow-y: auto; }
-  .cat-row { display: grid; grid-template-columns: minmax(90px, 1fr) 2.5fr auto; gap: 0.6rem; align-items: center; font-size: 0.85rem; }
-  .cat-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; gap: 0.35rem; }
-  .name-link { font: inherit; font-weight: 600; background: none; border: none; color: var(--text); cursor: pointer; padding: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: color var(--t-fast) var(--ease); }
-  .name-link:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
-  .open { font: inherit; font-size: 0.85rem; line-height: 1; background: none; border: none; color: var(--accent); cursor: pointer; padding: 0 0.1rem; flex: none; transition: transform var(--t-fast) var(--ease-spring), color var(--t-fast) var(--ease); }
-  .open:hover { transform: translateY(-1px) scale(1.15); color: var(--accent-hover); }
-  .cat-track { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-full); height: 0.7rem; overflow: hidden; }
-  .cat-fill { display: block; height: 100%; border-radius: var(--r-full); transition: width var(--t-slow) var(--ease-out); }
-  .cat-fill.accent { background: var(--accent); }
-  .cat-val { font-variant-numeric: tabular-nums; color: var(--muted); min-width: 4rem; text-align: right; }
+  .cat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  .cat-row {
+    display: grid;
+    grid-template-columns: minmax(90px, 1fr) 2.5fr auto;
+    gap: 0.6rem;
+    align-items: center;
+    font-size: 0.85rem;
+  }
+  .cat-name {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .name-link {
+    font: inherit;
+    font-weight: 600;
+    background: none;
+    border: none;
+    color: var(--text);
+    cursor: pointer;
+    padding: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: color var(--t-fast) var(--ease);
+  }
+  .name-link:hover {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .open {
+    font: inherit;
+    font-size: 0.85rem;
+    line-height: 1;
+    background: none;
+    border: none;
+    color: var(--accent);
+    cursor: pointer;
+    padding: 0 0.1rem;
+    flex: none;
+    transition:
+      transform var(--t-fast) var(--ease-spring),
+      color var(--t-fast) var(--ease);
+  }
+  .open:hover {
+    transform: translateY(-1px) scale(1.15);
+    color: var(--accent-hover);
+  }
+  .cat-track {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-full);
+    height: 0.7rem;
+    overflow: hidden;
+  }
+  .cat-fill {
+    display: block;
+    height: 100%;
+    border-radius: var(--r-full);
+    transition: width var(--t-slow) var(--ease-out);
+  }
+  .cat-fill.accent {
+    background: var(--accent);
+  }
+  .cat-val {
+    font-variant-numeric: tabular-nums;
+    color: var(--muted);
+    min-width: 4rem;
+    text-align: right;
+  }
 
   @media (max-width: 560px) {
-    .controls { align-items: stretch; }
-    .periods { justify-content: space-between; }
-    .periods button { flex: 1; padding: 0.4rem 0.5rem; text-align: center; }
-    .cards { grid-template-columns: repeat(2, 1fr); }
-    .panel { padding: 0.95rem 1rem; }
-    .bars { height: 120px; }
-    .cat-row { grid-template-columns: minmax(80px, 1fr) 1.8fr auto; gap: 0.5rem; }
-    .cat-val { min-width: 3.6rem; }
+    .controls {
+      align-items: stretch;
+    }
+    .periods {
+      justify-content: space-between;
+    }
+    .periods button {
+      flex: 1;
+      padding: 0.4rem 0.5rem;
+      text-align: center;
+    }
+    .cards {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .panel {
+      padding: 0.95rem 1rem;
+    }
+    .bars {
+      height: 120px;
+    }
+    .cat-row {
+      grid-template-columns: minmax(80px, 1fr) 1.8fr auto;
+      gap: 0.5rem;
+    }
+    .cat-val {
+      min-width: 3.6rem;
+    }
   }
   @media (max-width: 380px) {
-    .cards { grid-template-columns: 1fr; }
+    .cards {
+      grid-template-columns: 1fr;
+    }
   }
 </style>

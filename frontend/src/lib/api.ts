@@ -19,10 +19,7 @@ export function createProject(input: ProjectInput): Promise<ProjectRecord> {
   return apiSend<ProjectRecord>("POST", BASE, input);
 }
 
-export function updateProject(
-  id: string,
-  input: ProjectInput,
-): Promise<ProjectRecord> {
+export function updateProject(id: string, input: ProjectInput): Promise<ProjectRecord> {
   return apiSend<ProjectRecord>("PUT", `${BASE}/${encodeURIComponent(id)}`, input);
 }
 

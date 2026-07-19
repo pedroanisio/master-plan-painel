@@ -1,9 +1,16 @@
 <script lang="ts">
   import { untrack } from "svelte";
   import {
-    LANGUAGES, ECOSYSTEMS, SCOPES, COLOR_ID_MIN, COLOR_ID_MAX,
-    type Language, type PackageEcosystem, type DependencyScope,
-    type ProjectInput, type ProjectRecord,
+    LANGUAGES,
+    ECOSYSTEMS,
+    SCOPES,
+    COLOR_ID_MIN,
+    COLOR_ID_MAX,
+    type Language,
+    type PackageEcosystem,
+    type DependencyScope,
+    type ProjectInput,
+    type ProjectRecord,
   } from "./types";
   import ProjectAvatar from "./ProjectAvatar.svelte";
 
@@ -74,7 +81,10 @@
   }
 
   function splitCsv(value: string): string[] {
-    return value.split(",").map((s) => s.trim()).filter(Boolean);
+    return value
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
   }
 
   function nullIfBlank(value: string): string | null {
@@ -123,7 +133,7 @@
     <label>
       Color ID * <span class="hint">({COLOR_ID_MIN}–{COLOR_ID_MAX}, unique)</span>
       <span class="color-field">
-        <ProjectAvatar name={name || "?"} colorId={colorId} size={40} />
+        <ProjectAvatar name={name || "?"} {colorId} size={40} />
         <input
           type="number"
           min={COLOR_ID_MIN}
@@ -150,8 +160,8 @@
 
   <label>
     Purpose *
-    <textarea bind:value={purpose} required rows="2"
-      placeholder="What this codebase exists to do."></textarea>
+    <textarea bind:value={purpose} required rows="2" placeholder="What this codebase exists to do."
+    ></textarea>
   </label>
 
   <label>
@@ -164,8 +174,11 @@
     <div class="chips">
       {#each LANGUAGES as lang (lang)}
         <label class="chip" class:selected={languages.includes(lang)}>
-          <input type="checkbox" checked={languages.includes(lang)}
-            onchange={() => toggleLanguage(lang)} />
+          <input
+            type="checkbox"
+            checked={languages.includes(lang)}
+            onchange={() => toggleLanguage(lang)}
+          />
           {lang}
         </label>
       {/each}
@@ -228,10 +241,25 @@
     box-shadow: var(--shadow-md);
     animation: rise var(--t-slow) var(--ease-out) both;
   }
-  h2 { margin: 0; font-size: 1.2rem; font-weight: 700; letter-spacing: -0.01em; }
-  label { display: flex; flex-direction: column; gap: 0.35rem; font-weight: 600; font-size: 0.85rem; }
-  label.narrow { max-width: 20rem; }
-  input, textarea, select {
+  h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+  label.narrow {
+    max-width: 20rem;
+  }
+  input,
+  textarea,
+  select {
     font: inherit;
     padding: 0.5rem 0.65rem;
     border: 1px solid var(--border);
@@ -239,76 +267,191 @@
     background: var(--bg);
     color: var(--text);
     font-weight: 400;
-    transition: border-color var(--t) var(--ease), box-shadow var(--t) var(--ease), background var(--t) var(--ease);
+    transition:
+      border-color var(--t) var(--ease),
+      box-shadow var(--t) var(--ease),
+      background var(--t) var(--ease);
   }
-  input:hover, textarea:hover, select:hover { border-color: var(--border-strong); }
-  input:focus-visible, textarea:focus-visible, select:focus-visible {
-    border-color: var(--accent); box-shadow: var(--ring); outline: none;
+  input:hover,
+  textarea:hover,
+  select:hover {
+    border-color: var(--border-strong);
   }
-  select { cursor: pointer; }
-  textarea { resize: vertical; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.9rem; }
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    border-color: var(--accent);
+    box-shadow: var(--ring);
+    outline: none;
+  }
+  select {
+    cursor: pointer;
+  }
+  textarea {
+    resize: vertical;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.9rem;
+  }
   fieldset {
-    border: 1px solid var(--border); border-radius: var(--r-md); padding: 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 0.85rem;
     background: var(--surface);
   }
-  legend { font-weight: 700; font-size: 0.85rem; padding: 0 0.4rem; }
-  .chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  legend {
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 0 0.4rem;
+  }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
   .chip {
-    display: inline-flex; align-items: center; gap: 0.3rem;
-    padding: 0.28rem 0.6rem; border: 1px solid var(--border);
-    border-radius: var(--r-full); font-weight: 500; font-size: 0.8rem; cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.28rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: var(--r-full);
+    font-weight: 500;
+    font-size: 0.8rem;
+    cursor: pointer;
     background: var(--bg-elevated);
-    transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease),
-      color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease-spring);
+    transition:
+      background var(--t-fast) var(--ease),
+      border-color var(--t-fast) var(--ease),
+      color var(--t-fast) var(--ease),
+      transform var(--t-fast) var(--ease-spring);
     user-select: none;
   }
-  .chip:hover { border-color: var(--border-strong); background: var(--surface-hover); }
-  .chip:active { transform: scale(0.94); }
-  .chip.selected {
-    background: var(--accent-soft); border-color: color-mix(in oklab, var(--accent) 45%, transparent);
-    color: var(--accent); font-weight: 600;
+  .chip:hover {
+    border-color: var(--border-strong);
+    background: var(--surface-hover);
   }
-  .chip.selected:hover { background: var(--accent-soft-hover); }
-  .chip input { display: none; }
+  .chip:active {
+    transform: scale(0.94);
+  }
+  .chip.selected {
+    background: var(--accent-soft);
+    border-color: color-mix(in oklab, var(--accent) 45%, transparent);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .chip.selected:hover {
+    background: var(--accent-soft-hover);
+  }
+  .chip input {
+    display: none;
+  }
   .pkg-row {
     display: grid;
     grid-template-columns: 1.4fr 1fr 0.9fr 0.9fr 1.1fr auto;
-    gap: 0.4rem; margin-bottom: 0.5rem;
+    gap: 0.4rem;
+    margin-bottom: 0.5rem;
     animation: rise var(--t) var(--ease-out) both;
   }
-  .hint { font-weight: 400; color: var(--muted); }
-  .color-field { display: flex; align-items: center; gap: 0.6rem; }
-  .color-field input { flex: 1; }
-  .actions { display: flex; gap: 0.6rem; }
-  button {
-    font: inherit; font-weight: 600; cursor: pointer;
-    padding: 0.5rem 0.9rem; border-radius: var(--r-sm);
-    border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text);
-    transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease),
-      color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+  .hint {
+    font-weight: 400;
+    color: var(--muted);
   }
-  button:hover { background: var(--surface-hover); border-color: var(--border-strong); }
-  button:active { transform: translateY(1px); }
+  .color-field {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .color-field input {
+    flex: 1;
+  }
+  .actions {
+    display: flex;
+    gap: 0.6rem;
+  }
+  button {
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0.5rem 0.9rem;
+    border-radius: var(--r-sm);
+    border: 1px solid var(--border);
+    background: var(--bg-elevated);
+    color: var(--text);
+    transition:
+      background var(--t-fast) var(--ease),
+      border-color var(--t-fast) var(--ease),
+      color var(--t-fast) var(--ease),
+      box-shadow var(--t-fast) var(--ease),
+      transform var(--t-fast) var(--ease);
+  }
+  button:hover {
+    background: var(--surface-hover);
+    border-color: var(--border-strong);
+  }
+  button:active {
+    transform: translateY(1px);
+  }
   button.primary {
-    background: var(--accent); border-color: var(--accent); color: var(--on-accent);
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--on-accent);
     box-shadow: var(--shadow-sm);
   }
-  button.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); box-shadow: var(--shadow-md); }
-  button.primary:active { background: var(--accent-active); }
-  button.ghost { border-style: dashed; font-weight: 500; background: transparent; }
-  button.ghost:hover { background: var(--surface-hover); border-color: var(--accent); color: var(--accent); }
-  button:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
-  button:disabled:hover { background: var(--bg-elevated); border-color: var(--border); color: var(--text); }
+  button.primary:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+    box-shadow: var(--shadow-md);
+  }
+  button.primary:active {
+    background: var(--accent-active);
+  }
+  button.ghost {
+    border-style: dashed;
+    font-weight: 500;
+    background: transparent;
+  }
+  button.ghost:hover {
+    background: var(--surface-hover);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  button:disabled:hover {
+    background: var(--bg-elevated);
+    border-color: var(--border);
+    color: var(--text);
+  }
 
   @media (max-width: 560px) {
-    .card { padding: 1.1rem 1rem; }
+    .card {
+      padding: 1.1rem 1rem;
+    }
     /* Package editor: name + remove span full width; the four middle
        controls sit two-up so nothing is squeezed to an unusable width. */
-    .pkg-row { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
-    .pkg-row > input:first-child { grid-column: 1 / -1; }
-    .pkg-row > button { grid-column: 1 / -1; }
-    .actions { flex-direction: column; align-items: stretch; }
-    .actions button { width: 100%; }
+    .pkg-row {
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+    .pkg-row > input:first-child {
+      grid-column: 1 / -1;
+    }
+    .pkg-row > button {
+      grid-column: 1 / -1;
+    }
+    .actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .actions button {
+      width: 100%;
+    }
   }
 </style>

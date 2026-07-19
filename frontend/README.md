@@ -13,6 +13,7 @@ disclaimer:
 ## Disclaimer
 
 This work is subject to the methodological caveats and commitments described in [@DISCLAIMER.md](../DISCLAIMER.md).
+
 > No statement or premise not backed by a real logical definition or verifiable reference should be taken for granted.
 
 Svelte 5 + TypeScript + Vite single-page app with two tabs:
@@ -51,12 +52,12 @@ backend, so no CORS configuration is needed in development.
 
 ## Scripts
 
-| Command | Purpose |
-|---|---|
-| `npm run dev` | Start the dev server (hot reload) on port 5173. |
-| `npm run build` | Type-check-free production build into `dist/`. |
-| `npm run preview` | Serve the built `dist/` locally. |
-| `npm run check` | `svelte-check` — TypeScript + Svelte type checking. |
+| Command           | Purpose                                             |
+| ----------------- | --------------------------------------------------- |
+| `npm run dev`     | Start the dev server (hot reload) on port 5173.     |
+| `npm run build`   | Type-check-free production build into `dist/`.      |
+| `npm run preview` | Serve the built `dist/` locally.                    |
+| `npm run check`   | `svelte-check` — TypeScript + Svelte type checking. |
 
 ## Structure
 
