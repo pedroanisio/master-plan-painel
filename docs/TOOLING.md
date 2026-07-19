@@ -20,6 +20,15 @@ disclaimer:
 | `python -m master_plan.docgen` | Regenerate this document. |
 | `docker compose up` | Run the full stack (API + frontend + nginx). |
 
+## Console commands (2)
+
+Entry points installed by `pip install -e ".[api]"` (also runnable as `python -m <module>`).
+
+| Command | Target |
+|---|---|
+| `master-plan-docgen` | `master_plan.docgen:main` |
+| `master-plan-worklog` | `master_plan.worklog_cli:main` |
+
 ## HTTP API (22 routes)
 
 `🔒` = requires a bearer token (owner-scoped); `public` = no auth. The gate name is the FastAPI dependency enforcing it.

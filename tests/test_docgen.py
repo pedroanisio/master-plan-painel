@@ -41,6 +41,13 @@ def test_scripts_documented() -> None:
     assert "scripts/seed.py`" in md
 
 
+def test_console_commands_documented() -> None:
+    md = docgen.generate()
+    assert "## Console commands" in md
+    assert "`master-plan-docgen`" in md
+    assert "`master-plan-worklog`" in md
+
+
 def test_output_is_reproducible() -> None:
     # No volatile timestamp → two runs are byte-identical (so --check is meaningful).
     assert docgen.generate() == docgen.generate()

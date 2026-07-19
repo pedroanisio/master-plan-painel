@@ -21,6 +21,8 @@ dev = ["pytest>=8", "httpx>=0.27"]
 # Auto-generates docs/TOOLING.md from source (routes, env vars, CLI scripts).
 # Needs the `api` extra (FastAPI) to introspect the app.
 master-plan-docgen = "master_plan.docgen:main"
+# Register/list work-log entries from the command line.
+master-plan-worklog = "master_plan.worklog_cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/master_plan"]

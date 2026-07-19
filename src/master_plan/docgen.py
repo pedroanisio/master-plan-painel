@@ -172,6 +172,18 @@ def _extract_usage(docstring: str) -> str:
     return ""
 
 
+def discover_console_scripts(root: Path) -> list[tuple[str, str]]:
+    """Read the ``[project.scripts]`` console entry points from pyproject.toml."""
+    pyproject = root / "pyproject.toml"
+    if not pyproject.exists():
+        return []
+    import tomllib
+
+    data = tomllib.loads(pyproject.read_text(encoding="utf-8"))
+    scripts = data.get("project", {}).get("scripts", {})
+    return sorted(scripts.items())
+
+
 def discover_scripts(scripts_dir: Path) -> list[ScriptDoc]:
     """Describe each scripts/*.py from its module docstring (never executed)."""
     out: list[ScriptDoc] = []
@@ -203,9 +215,11 @@ def render(
     routes: list[RouteDoc],
     env_vars: list[EnvVar],
     scripts: list[ScriptDoc],
+    console: list[tuple[str, str]] | None = None,
     *,
     date: str | None = None,
 ) -> str:
+    console = console or []
     lines: list[str] = []
 
     # Mandatory disclaimer frontmatter (CLAUDE.md rule 5). No volatile date by
@@ -249,6 +263,21 @@ def render(
         "| `docker compose up` | Run the full stack (API + frontend + nginx). |"
     )
     lines.append("")
+
+    # -- Console commands --------------------------------------------------
+    if console:
+        lines.append(f"## Console commands ({len(console)})")
+        lines.append("")
+        lines.append(
+            'Entry points installed by `pip install -e ".[api]"` '
+            "(also runnable as `python -m <module>`)."
+        )
+        lines.append("")
+        lines.append("| Command | Target |")
+        lines.append("|---|---|")
+        for name, target in console:
+            lines.append(f"| `{name}` | `{target}` |")
+        lines.append("")
 
     # -- HTTP API ----------------------------------------------------------
     lines.append(f"## HTTP API ({len(routes)} routes)")
@@ -310,7 +339,8 @@ def generate(root: Path | None = None, *, date: str | None = None) -> str:
     routes = discover_routes(app)
     env_vars = discover_env_vars(root / "src" / "master_plan" / "api")
     scripts = discover_scripts(root / "scripts")
-    return render(routes, env_vars, scripts, date=date)
+    console = discover_console_scripts(root)
+    return render(routes, env_vars, scripts, console, date=date)
 
 
 # --------------------------------------------------------------------------- #
