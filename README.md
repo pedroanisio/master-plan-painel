@@ -239,6 +239,17 @@ pip install -e ".[dev]"
 pytest
 ```
 
+### Tooling reference (auto-generated)
+
+[`docs/TOOLING.md`](./docs/TOOLING.md) is generated from source — the HTTP API
+(routes + auth), every `MASTER_PLAN_*` env var, and the CLI scripts — so it
+never drifts. Regenerate after changing any of those:
+
+```bash
+python -m master_plan.docgen          # writes docs/TOOLING.md
+python -m master_plan.docgen --check  # CI guard: non-zero if the doc is stale
+```
+
 ## Docker
 
 Run the API and Svelte/Vite frontend together:

@@ -127,7 +127,11 @@
               <button class="link" onclick={() => onview(project)}>{project.name}</button>
             </span>
             {#if project.tags.length}
-              <span class="tags">{project.tags.join(" · ")}</span>
+              <span class="tags" title={project.tags.join(", ")}>
+                {project.tags.slice(0, 3).join(" · ")}{#if project.tags.length > 3}<span
+                    class="more">&nbsp;+{project.tags.length - 3}</span
+                  >{/if}
+              </span>
             {/if}
           </span>
           <span class="domain" data-label="Domain">
@@ -316,6 +320,14 @@
     font-weight: 400;
     font-size: 0.75rem;
     color: var(--muted);
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .more {
+    color: var(--faint);
+    font-variant-numeric: tabular-nums;
   }
   .langs {
     display: flex;

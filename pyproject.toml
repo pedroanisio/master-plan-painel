@@ -17,6 +17,11 @@ dependencies = ["pydantic>=2.11,<3"]
 api = ["fastapi>=0.115", "uvicorn[standard]>=0.30", "boto3>=1.34"]
 dev = ["pytest>=8", "httpx>=0.27"]
 
+[project.scripts]
+# Auto-generates docs/TOOLING.md from source (routes, env vars, CLI scripts).
+# Needs the `api` extra (FastAPI) to introspect the app.
+master-plan-docgen = "master_plan.docgen:main"
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/master_plan"]
 
