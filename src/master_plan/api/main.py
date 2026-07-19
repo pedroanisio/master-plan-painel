@@ -399,6 +399,7 @@ def create_app(
             ],
             "authenticated_routes": [
                 "GET /api/auth/me",
+                "POST /api/auth/refresh",
                 "/api/projects (CRUDL)",
                 "/api/work-entries (CRUDL)",
                 "GET /api/work-summary",
@@ -458,6 +459,35 @@ def create_app(
         users: UserRepository = Depends(get_user_repository),
     ) -> User:
         return _current_user(users, authorization).public()
+
+    @app.post("/api/auth/refresh", response_model=AuthResponse)
+    def refresh(
+        authorization: str | None = Header(default=None),
+        users: UserRepository = Depends(get_user_repository),
+    ) -> AuthResponse:
+        """Exchange a still-valid session token for a fresh one (sliding session).
+
+        Session-only, exactly like ``/api/auth/me``: the caller must present a
+        currently-valid bearer token. Expired, forged, or API-key credentials
+        are rejected with 401 — the client must then sign in again. The role and
+        active status are re-resolved from the store, so a token for a
+        demoted/deactivated user cannot renew itself into stale privileges.
+
+        Note: tokens are stateless and signed, so the previous token stays valid
+        until its own expiry (no server-side revocation list). Refresh extends
+        the session by minting a new token with a full TTL, not by invalidating
+        the old one.
+        """
+        record = _current_user(users, authorization)
+        access_token, expires_in = create_token(
+            subject=record.id,
+            role=record.role.value,
+            expires_in=TOKEN_TTL_SECONDS,
+        )
+        return AuthResponse(
+            user=record.public(),
+            token=Token(access_token=access_token, expires_in=expires_in),
+        )
 
     # -- projects (owner-scoped; every route requires authentication) ------
     @app.get("/api/projects", response_model=list[ProjectRecord])

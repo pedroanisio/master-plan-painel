@@ -19,3 +19,12 @@ export function login(input: LoginInput): Promise<AuthResponse> {
 export function me(): Promise<User> {
   return apiGet<User>(`${BASE}/me`);
 }
+
+/**
+ * Exchange the current (still-valid) session token for a fresh one.
+ * Rejects with a 401 ApiError once the token has expired — the caller must
+ * then sign in again. The body is empty; `{}` satisfies the JSON helper.
+ */
+export function refresh(): Promise<AuthResponse> {
+  return apiSend<AuthResponse>("POST", `${BASE}/refresh`, {});
+}
