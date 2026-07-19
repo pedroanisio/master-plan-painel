@@ -26,3 +26,4 @@ frontend/.svelte-kit/
 .DS_Store
 .agent-tasks/
 .repo/
+clients/rust/target/

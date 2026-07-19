@@ -1,0 +1,21 @@
+[package]
+name = "master-plan-cli"
+description = "Command-line client (`mp`) for the master-plan-painel API, driven by an API key."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "mp"
+path = "src/main.rs"
+
+[dependencies]
+master-plan-sdk = { path = "../sdk" }
+clap = { version = "4", features = ["derive", "env", "wrap_help"] }
+clap_complete = "4"
+serde.workspace = true
+serde_json.workspace = true
+anyhow = "1"
+is-terminal = "0.4"
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
