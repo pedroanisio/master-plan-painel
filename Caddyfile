@@ -1,0 +1,57 @@
+# Edge configuration for build-journal.dev (production / UAT).
+#
+# One origin, one process: Caddy serves the pre-built SPA from /srv and reverse
+# proxies /api to the FastAPI backend, so the browser makes same-origin requests
+# (no CORS). The bundle is baked into this image at build time (see Dockerfile).
+#
+# SITE_ADDRESS controls the site block and, with it, TLS:
+#   build-journal.dev      -> Caddy auto-provisions a Let's Encrypt certificate
+#                             (requires public :80/:443 + a DNS record for it)
+#   uat.build-journal.dev  -> same, for UAT
+#   :80                    -> plain HTTP, for running behind an external TLS
+#                             terminator (cloud LB / another proxy)
+
+{$SITE_ADDRESS:localhost} {
+	# Negotiated compression for text assets and JSON.
+	encode zstd gzip
+
+	# --- API -> FastAPI backend ---------------------------------------
+	# The full "/api/..." path is forwarded unchanged; every route is mounted
+	# under /api. Response headers (X-Request-ID, WWW-Authenticate) pass through.
+	handle /api/* {
+		reverse_proxy api:8000 {
+			header_up X-Forwarded-Proto {scheme}
+		}
+	}
+
+	# --- SPA static assets --------------------------------------------
+	handle {
+		root * /srv
+
+		# Vite fingerprints asset filenames, so /assets/* is safe to cache
+		# forever; index.html must never be cached or clients pin a stale build.
+		@immutable path /assets/*
+		header @immutable Cache-Control "public, max-age=31536000, immutable"
+		header /index.html Cache-Control "no-cache"
+
+		# History-API fallback: unknown paths render the SPA shell.
+		try_files {path} /index.html
+		file_server
+	}
+
+	# --- Security headers ---------------------------------------------
+	header {
+		# Ignored by browsers over plain HTTP; takes effect once TLS is active.
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	# Access logs to stdout as JSON (collect via the container runtime).
+	log {
+		output stdout
+		format json
+	}
+}

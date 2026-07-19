@@ -1,0 +1,14 @@
+{
+  "name": "Master Plan",
+  "short_name": "Master Plan",
+  "description": "Track every codebase and the work behind it — catalogue, work log, and reports.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#101217",
+  "theme_color": "#635bff",
+  "icons": [
+    { "src": "/favicon.svg", "type": "image/svg+xml", "sizes": "any" },
+    { "src": "/icon-192.png", "type": "image/png", "sizes": "192x192", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "type": "image/png", "sizes": "512x512", "purpose": "any maskable" }
+  ]
+}

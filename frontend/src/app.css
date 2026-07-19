@@ -1,0 +1,194 @@
+/*
+ * Design foundation — tokens, resets, and global micro-interactions.
+ *
+ * Everything downstream (App.svelte and every lib/*.svelte component) reads
+ * from these custom properties. Colours, elevation, radii, motion, and focus
+ * are defined once here so the surface stays cohesive as it grows.
+ */
+
+:root {
+  /* -- Surfaces & text ------------------------------------------------- */
+  --bg: #fbfbfd;
+  --bg-elevated: #ffffff;
+  --surface: #f4f5f8;
+  --surface-hover: #eceef3;
+  --surface-2: #ffffff;
+  --text: #14161c;
+  --text-soft: #3d4250;
+  --muted: #6b7280;
+  --faint: #9aa1ad;
+  --border: #e4e6ec;
+  --border-strong: #d3d7e0;
+
+  /* -- Brand & accent -------------------------------------------------- */
+  /* Signature identity: a violet→blue "blurple". The gradient is the brand;
+     --accent is its solid mid-tone that every component reads from. */
+  --brand-1: #8b5cf6;                 /* violet  */
+  --brand-2: #3b82f6;                 /* blue    */
+  --brand-gradient: linear-gradient(135deg, var(--brand-1) 0%, var(--brand-2) 100%);
+  --brand-gradient-soft: linear-gradient(135deg,
+    color-mix(in oklab, var(--brand-1) 14%, transparent),
+    color-mix(in oklab, var(--brand-2) 14%, transparent));
+  --brand-glow: 0 10px 26px -8px color-mix(in oklab, var(--accent) 60%, transparent);
+
+  --accent: #635bff;                  /* blurple mid-tone */
+  --accent-hover: #524bef;
+  --accent-active: #443dd6;
+  --accent-soft: #ececff;
+  --accent-soft-hover: #e0dfff;
+  --on-accent: #ffffff;
+
+  /* -- Semantic -------------------------------------------------------- */
+  --danger: #d64545;
+  --danger-hover: #c23a3a;
+  --danger-soft: #fdecec;
+  --danger-text: #a12626;
+  --success: #0f9d58;
+  --success-text: #0c7d46;
+
+  /* -- Elevation (layered, low-contrast — reads as depth, not drop) ---- */
+  --shadow-xs: 0 1px 2px rgba(16, 22, 40, 0.04);
+  --shadow-sm: 0 1px 2px rgba(16, 22, 40, 0.05), 0 1px 3px rgba(16, 22, 40, 0.05);
+  --shadow-md: 0 2px 4px rgba(16, 22, 40, 0.05), 0 4px 12px rgba(16, 22, 40, 0.07);
+  --shadow-lg: 0 8px 24px rgba(16, 22, 40, 0.10), 0 2px 6px rgba(16, 22, 40, 0.06);
+  --ring: 0 0 0 3px color-mix(in oklab, var(--accent) 32%, transparent);
+  --ring-danger: 0 0 0 3px color-mix(in oklab, var(--danger) 30%, transparent);
+
+  /* -- Radii (rounder — reads friendly/modern) ------------------------- */
+  --r-xs: 6px;
+  --r-sm: 9px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 22px;
+  --r-full: 999px;
+
+  /* -- Type ------------------------------------------------------------ */
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Space Grotesk", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* -- Motion ---------------------------------------------------------- */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --t-fast: 110ms;
+  --t: 170ms;
+  --t-slow: 280ms;
+
+  font-family: var(--font-body);
+  color: var(--text);
+  background: var(--bg);
+  color-scheme: light;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #101217;
+    --bg-elevated: #191c23;
+    --surface: #1c1f27;
+    --surface-hover: #242833;
+    --surface-2: #21252e;
+    --text: #eceef3;
+    --text-soft: #c3c8d4;
+    --muted: #98a0ac;
+    --faint: #6b7280;
+    --border: #2c313c;
+    --border-strong: #3a404d;
+
+    --brand-1: #a78bfa;
+    --brand-2: #60a5fa;
+
+    --accent: #8b83ff;
+    --accent-hover: #9d96ff;
+    --accent-active: #b0aaff;
+    --accent-soft: #24243f;
+    --accent-soft-hover: #2d2d4e;
+    --on-accent: #0d1017;
+
+    --danger: #ff6b6b;
+    --danger-hover: #ff8080;
+    --danger-soft: #3a2224;
+    --danger-text: #ff9c9c;
+    --success: #34d399;
+    --success-text: #6ee7b7;
+
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.28);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.35), 0 6px 16px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.5), 0 3px 8px rgba(0, 0, 0, 0.4);
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+
+/* Display face on all headings — the components' scoped rules set size/weight
+   but not family, so this gives the whole app one typographic voice. */
+h1, h2, h3 { font-family: var(--font-display); }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  /* Signature brand wash: a violet bloom top-left, a blue bloom top-right,
+     dissolving into the base surface. This is the identity's ambient layer. */
+  background:
+    radial-gradient(760px 420px at 12% -8%, color-mix(in oklab, var(--brand-1) 16%, transparent), transparent 60%),
+    radial-gradient(820px 460px at 92% -12%, color-mix(in oklab, var(--brand-2) 15%, transparent), transparent 62%),
+    var(--bg);
+  background-attachment: fixed;
+}
+
+/* Consistent, quiet focus ring across every interactive element. Mouse
+   users never see it (:focus-visible), keyboard users always do. */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+  border-radius: var(--r-sm);
+}
+
+::selection {
+  background: color-mix(in oklab, var(--accent) 28%, transparent);
+}
+
+/* Native form controls pick up the accent for checks, carets, sliders. */
+:root { accent-color: var(--accent); }
+
+/* Refined scrollbars (WebKit + Firefox) — thin, self-effacing. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: var(--r-full);
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+  background-clip: content-box;
+}
+
+/* Honour reduced-motion: strip transitions/animations but keep the ring. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Shared entrance used by cards/panels as they mount. */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

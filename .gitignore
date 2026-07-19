@@ -1,0 +1,28 @@
+# Secrets / local environment — never commit real values (see .env.example).
+.env
+.env.*
+!.env.example
+
+# Runtime data stores (JSON persistence, mounted as a volume in Docker).
+/data/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.svelte-kit/
+
+# Logs / OS cruft
+*.log
+.DS_Store
+.agent-tasks/
+.repo/

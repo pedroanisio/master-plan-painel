@@ -1,0 +1,76 @@
+# Production / UAT deployment for build-journal.dev.
+#
+# Topology
+#   Internet ──▶ web (Caddy, auto-HTTPS) ──▶ api (FastAPI, single worker)
+#                    │ serves the pre-built SPA (/srv)
+#                    └ reverse-proxies /api  ──────────▶ api:8000
+#
+# Everything is one origin, so the browser makes same-origin calls (no CORS).
+#
+# First run
+#   cp .env.example .env
+#   # edit .env: set MASTER_PLAN_SECRET (openssl rand -hex 32) and SITE_ADDRESS
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# For automatic HTTPS, this host must be reachable on public :80 and :443 and a
+# DNS A/AAAA record for SITE_ADDRESS must point at it. To sit behind an external
+# TLS terminator instead, set SITE_ADDRESS=:80 and publish only port 80.
+
+name: build-journal
+
+services:
+  api:
+    build:
+      context: .
+      target: api-runtime
+    image: build-journal-api:latest
+    restart: unless-stopped
+    environment:
+      MASTER_PLAN_DB: /data/projects.json
+      MASTER_PLAN_WORKLOG_DB: /data/work_entries.json
+      MASTER_PLAN_USERS_DB: /data/users.json
+      MASTER_PLAN_APIKEYS_DB: /data/api_keys.json
+      # REQUIRED — bearer-token signing key. No default on purpose: an unset or
+      # shared value lets anyone forge a session. `?` fails the run if missing.
+      # Generate: openssl rand -hex 32
+      MASTER_PLAN_SECRET: ${MASTER_PLAN_SECRET:?set MASTER_PLAN_SECRET in .env (openssl rand -hex 32)}
+    volumes:
+      - api_data:/data
+    expose:
+      - "8000"          # cluster-internal only; never published to the host
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/api/health').status==200 else 1)"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  web:
+    build:
+      context: .
+      target: web
+    image: build-journal-web:latest
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      # build-journal.dev (or uat.build-journal.dev) -> automatic HTTPS.
+      # ":80" -> plain HTTP behind an external TLS terminator.
+      SITE_ADDRESS: ${SITE_ADDRESS:-build-journal.dev}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"   # HTTP/3 (QUIC)
+    volumes:
+      - caddy_data:/data      # ACME account + issued certs — MUST persist
+      - caddy_config:/config
+
+volumes:
+  api_data:       # projects/work/users/api-keys JSON stores
+  caddy_data:     # TLS certificates and ACME state
+  caddy_config:
