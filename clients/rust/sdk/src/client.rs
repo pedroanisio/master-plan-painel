@@ -1,7 +1,9 @@
 //! The HTTP client. Every request is authenticated with the `X-API-Key` header.
 
 use crate::error::{ApiErrorBody, Error, Result};
-use crate::models::{Health, Project, ProjectInput, PublicInfo, WorkEntry, WorkEntryInput, WorkReport};
+use crate::models::{
+    Health, Project, ProjectInput, PublicInfo, WorkEntry, WorkEntryInput, WorkReport,
+};
 use reqwest::blocking::{Client as HttpClient, RequestBuilder, Response};
 use serde::de::DeserializeOwned;
 
@@ -29,7 +31,11 @@ impl Client {
         let http = HttpClient::builder()
             .user_agent(concat!("master-plan-sdk/", env!("CARGO_PKG_VERSION")))
             .build()?;
-        Ok(Self { base_url, api_key, http })
+        Ok(Self {
+            base_url,
+            api_key,
+            http,
+        })
     }
 
     /// Build a client from the environment: `MASTER_PLAN_API_URL`
@@ -93,7 +99,11 @@ impl Client {
 
     /// `PUT /api/projects/{id}` — full replace.
     pub fn update_project(&self, id: &str, input: &ProjectInput) -> Result<Project> {
-        self.send_json(self.http.put(self.url(&format!("/projects/{id}"))).json(input))
+        self.send_json(
+            self.http
+                .put(self.url(&format!("/projects/{id}")))
+                .json(input),
+        )
     }
 
     /// `DELETE /api/projects/{id}`
@@ -175,7 +185,10 @@ mod tests {
 
     #[test]
     fn new_rejects_empty_key() {
-        assert!(matches!(Client::new("https://x", "   "), Err(Error::Config(_))));
+        assert!(matches!(
+            Client::new("https://x", "   "),
+            Err(Error::Config(_))
+        ));
     }
 
     #[test]
@@ -187,10 +200,15 @@ mod tests {
 
     #[test]
     fn error_from_parses_envelope() {
-        let body =
-            r#"{"error":{"code":"not_found","message":"Not Found","request_id":"abc"}}"#.to_string();
+        let body = r#"{"error":{"code":"not_found","message":"Not Found","request_id":"abc"}}"#
+            .to_string();
         match error_from(404, body) {
-            Error::Api { status, code, message, request_id } => {
+            Error::Api {
+                status,
+                code,
+                message,
+                request_id,
+            } => {
                 assert_eq!(status, 404);
                 assert_eq!(code, "not_found");
                 assert_eq!(message, "Not Found");

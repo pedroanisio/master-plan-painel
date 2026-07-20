@@ -170,6 +170,32 @@ def _cmd_list(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_projects_list(args: argparse.Namespace) -> int:
+    base, key = _base_url(args.url), _api_key(args.api_key)
+    status, payload = _call("GET", base, "/api/projects", key)
+    if status != 200 or not isinstance(payload, list):
+        return _api_error(status, payload)
+    if args.json:
+        print(json.dumps(payload, indent=2))
+        return 0
+    if not payload:
+        print("(no projects)")
+        return 0
+    rows = sorted(payload, key=lambda p: str(p.get("name", "")).lower())
+    print(f"{'COLOR':>5}  {'NAME':<28} {'DOMAIN':<24} {'LANGUAGES':<26} PKGS")
+    for p in rows:
+        domain = str(p.get("domain", ""))
+        if p.get("sub_domain"):
+            domain = f"{domain}/{p['sub_domain']}"
+        langs = ",".join(p.get("languages") or [])
+        print(
+            f"{p.get('color_id', ''):>5}  {str(p.get('name', ''))[:28]:<28} "
+            f"{domain[:24]:<24} {langs[:26]:<26} {len(p.get('packages') or [])}"
+        )
+    print(f"\n{len(rows)} project{'' if len(rows) == 1 else 's'}")
+    return 0
+
+
 def _add_conn_flags(sub: argparse.ArgumentParser) -> None:
     sub.add_argument("--api-key", help="API key (mpk_…); or set MASTER_PLAN_API_KEY.")
     sub.add_argument("--url", help=f"API base URL (default: {_DEFAULT_URL}).")
@@ -203,6 +229,14 @@ def build_parser() -> argparse.ArgumentParser:
     lst.add_argument("-n", "--limit", type=int, default=20, help="Max rows (default: 20).")
     _add_conn_flags(lst)
     lst.set_defaults(func=_cmd_list)
+
+    # Project catalogue commands: `... projects list`
+    proj = sub.add_parser("projects", help="Project catalogue commands.")
+    proj_sub = proj.add_subparsers(dest="projects_command", required=True)
+    proj_list = proj_sub.add_parser("list", help="List all projects you own.")
+    proj_list.add_argument("--json", action="store_true", help="Emit raw JSON records.")
+    _add_conn_flags(proj_list)
+    proj_list.set_defaults(func=_cmd_projects_list)
 
     return parser
 

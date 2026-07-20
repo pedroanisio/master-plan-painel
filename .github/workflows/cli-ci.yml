@@ -1,0 +1,62 @@
+name: CLI CI
+
+# Gate the Rust SDK + `mp` CLI on every change that touches them. Uses the
+# runner's preinstalled Rust toolchain and only first-party actions, keeping
+# the supply-chain surface minimal.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "clients/rust/**"
+      - ".github/workflows/cli-ci.yml"
+  pull_request:
+    paths:
+      - "clients/rust/**"
+      - ".github/workflows/cli-ci.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: cli-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: clients/rust
+
+jobs:
+  check:
+    name: fmt · clippy · test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Toolchain info
+        run: |
+          rustup component add rustfmt clippy
+          rustc --version && cargo --version
+
+      - name: Cache cargo registry and build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            clients/rust/target
+          key: cargo-${{ runner.os }}-${{ hashFiles('clients/rust/Cargo.lock') }}
+          restore-keys: cargo-${{ runner.os }}-
+
+      - name: Formatting
+        run: cargo fmt --all --check
+
+      - name: Lint (warnings are errors)
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Tests
+        run: cargo test --workspace
+
+      - name: Release build (smoke)
+        run: cargo build --release --locked

@@ -1,0 +1,211 @@
+name: Release CLI
+
+# Publishes the `mp` CLI as a GitHub Release with prebuilt binaries.
+#
+# Trigger by pushing a tag of the form `cli-v<version>` (the `cli-` prefix keeps
+# CLI releases distinct from any app/API release in this same repo):
+#
+#     git tag cli-v0.1.0 && git push origin cli-v0.1.0
+#
+# The tag version must match the workspace version in clients/rust/Cargo.toml —
+# the `verify` job fails the release if they drift.
+
+on:
+  push:
+    tags: ["cli-v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to build and release (e.g. cli-v0.1.0)"
+        required: true
+
+concurrency:
+  group: cli-release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write # required to create the release and upload assets
+
+jobs:
+  # ---------------------------------------------------------------------------
+  verify:
+    name: Verify tag matches Cargo version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      tag: ${{ steps.v.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - id: v
+        name: Resolve and cross-check version
+        run: |
+          set -euo pipefail
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          TAG_VERSION="${TAG#cli-v}"
+          CARGO_VERSION="$(cargo metadata --format-version 1 --no-deps \
+            --manifest-path clients/rust/Cargo.toml \
+            | jq -r '.packages[] | select(.name=="master-plan-cli") | .version')"
+          echo "tag=$TAG"                 >> "$GITHUB_OUTPUT"
+          echo "version=$TAG_VERSION"     >> "$GITHUB_OUTPUT"
+          echo "tag version:   $TAG_VERSION"
+          echo "cargo version: $CARGO_VERSION"
+          if [ "$TAG_VERSION" != "$CARGO_VERSION" ]; then
+            echo "::error::Tag $TAG implies version $TAG_VERSION but Cargo.toml says $CARGO_VERSION"
+            exit 1
+          fi
+
+  # ---------------------------------------------------------------------------
+  build:
+    name: ${{ matrix.target }}
+    needs: verify
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+          - target: x86_64-unknown-linux-musl # static, portable across distros
+            os: ubuntu-latest
+            apt: musl-tools
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+            apt: gcc-aarch64-linux-gnu
+            linker: aarch64-linux-gnu-gcc
+          - target: aarch64-apple-darwin # Apple Silicon
+            os: macos-latest
+          - target: x86_64-apple-darwin # Intel Mac
+            os: macos-13
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.verify.outputs.tag }}
+
+      - name: Install target toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          rustup target add ${{ matrix.target }}
+          if [ -n "${{ matrix.apt || '' }}" ]; then
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends ${{ matrix.apt }}
+          fi
+
+      - name: Build
+        shell: bash
+        working-directory: clients/rust
+        env:
+          # Cross-linking for aarch64 Linux. TLS is rustls/ring (no OpenSSL),
+          # so a C cross-compiler is all that is needed.
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: ${{ matrix.linker }}
+          CC_aarch64_unknown_linux_gnu: ${{ matrix.linker }}
+        run: cargo build --release --locked --target ${{ matrix.target }} --bin mp
+
+      - name: Package
+        id: pkg
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ needs.verify.outputs.version }}"
+          TARGET="${{ matrix.target }}"
+          STAGE="mp-${VERSION}-${TARGET}"
+          mkdir -p "dist/${STAGE}"
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            cp "clients/rust/target/${TARGET}/release/mp.exe" "dist/${STAGE}/"
+          else
+            cp "clients/rust/target/${TARGET}/release/mp" "dist/${STAGE}/"
+          fi
+          cp LICENSE "dist/${STAGE}/"
+          cp clients/rust/README.md "dist/${STAGE}/" 2>/dev/null || true
+          cd dist
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            7z a -tzip "${STAGE}.zip" "${STAGE}" >/dev/null
+            ASSET="${STAGE}.zip"
+          else
+            tar -czf "${STAGE}.tar.gz" "${STAGE}"
+            ASSET="${STAGE}.tar.gz"
+          fi
+          # Checksum alongside the archive (portable across macOS/Linux/Windows).
+          if command -v sha256sum >/dev/null; then
+            sha256sum "$ASSET" > "$ASSET.sha256"
+          else
+            shasum -a 256 "$ASSET" > "$ASSET.sha256"
+          fi
+          echo "asset=$ASSET" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mp-${{ matrix.target }}
+          path: |
+            dist/${{ steps.pkg.outputs.asset }}
+            dist/${{ steps.pkg.outputs.asset }}.sha256
+          if-no-files-found: error
+          retention-days: 7
+
+  # ---------------------------------------------------------------------------
+  release:
+    name: Publish GitHub Release
+    needs: [verify, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.verify.outputs.tag }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Aggregate checksums
+        run: |
+          set -euo pipefail
+          cd dist
+          cat *.sha256 | sed 's#\./##' > SHA256SUMS
+          rm -f *.sha256
+          ls -la
+
+      - name: Create or update the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.verify.outputs.tag }}
+          VERSION: ${{ needs.verify.outputs.version }}
+        run: |
+          set -euo pipefail
+          NOTES=$(cat <<EOF
+          \`mp\` — command-line client for the master-plan-painel API.
+
+          ## Install
+          Download the archive for your platform, extract, and put \`mp\` on your PATH:
+
+          \`\`\`bash
+          tar -xzf mp-${VERSION}-x86_64-unknown-linux-gnu.tar.gz
+          install -m755 mp-${VERSION}-x86_64-unknown-linux-gnu/mp ~/.local/bin/mp
+          mp --version
+          \`\`\`
+
+          Or build from source: \`cargo install --path clients/rust/cli\`.
+
+          ## Configure
+          \`\`\`bash
+          export MASTER_PLAN_API_KEY=mpk_…      # Settings → API keys
+          export MASTER_PLAN_API_URL=https://…  # optional
+          \`\`\`
+          \`mp\` also reads these from a \`.env\` file in the current directory or any parent.
+
+          Verify downloads against \`SHA256SUMS\`.
+          EOF
+          )
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --clobber
+          else
+            gh release create "$TAG" dist/* \
+              --title "mp ${VERSION}" \
+              --notes "$NOTES"
+          fi

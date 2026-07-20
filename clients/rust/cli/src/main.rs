@@ -1,6 +1,7 @@
 //! `mp` — command-line client for the master-plan-painel API.
 
 mod cli;
+mod env_file;
 mod output;
 
 use anyhow::{anyhow, Context, Result};
@@ -13,6 +14,11 @@ use output::{ellipsize, hm, short, table, Ui};
 use std::io::Write;
 
 fn main() {
+    // Load the nearest `.env` before clap parses, so the `[env: …]` fallbacks
+    // (MASTER_PLAN_API_KEY / _API_URL) can come from the file. Real environment
+    // variables are never overwritten, and an explicit flag still wins.
+    let _ = env_file::load();
+
     let cli = Cli::parse();
     let ui = Ui::new(cli.color, cli.json);
     if let Err(err) = run(&cli, &ui) {
@@ -30,9 +36,10 @@ fn run(cli: &Cli, ui: &Ui) -> Result<()> {
         return Ok(());
     }
 
-    let key = cli.api_key.clone().ok_or_else(|| {
-        anyhow!("no API key — set MASTER_PLAN_API_KEY or pass --api-key <mpk_…>")
-    })?;
+    let key = cli
+        .api_key
+        .clone()
+        .ok_or_else(|| anyhow!("no API key — set MASTER_PLAN_API_KEY or pass --api-key <mpk_…>"))?;
     let client = Client::new(&cli.url, key).context("building API client")?;
 
     match &cli.command {
@@ -52,7 +59,11 @@ fn health(client: &Client, ui: &Ui) -> Result<()> {
     if ui.json {
         return print_json(&h);
     }
-    let mark = if h.status == "ok" { ui.green("●") } else { ui.yellow("●") };
+    let mark = if h.status == "ok" {
+        ui.green("●")
+    } else {
+        ui.yellow("●")
+    };
     println!("{mark} {} — {}", h.status, ui.dim(client.base_url()));
     Ok(())
 }
@@ -118,7 +129,10 @@ fn projects(client: &Client, ui: &Ui, cmd: &ProjectsCmd) -> Result<()> {
             );
         }
         ProjectsCmd::Delete { id, yes } => {
-            let name = client.get_project(id).map(|p| p.name).unwrap_or_else(|_| id.clone());
+            let name = client
+                .get_project(id)
+                .map(|p| p.name)
+                .unwrap_or_else(|_| id.clone());
             if !confirm(ui, &format!("Delete project “{name}”?"), *yes)? {
                 println!("{}", ui.dim("Aborted."));
                 return Ok(());
@@ -171,13 +185,15 @@ fn work(client: &Client, ui: &Ui, cmd: &WorkCmd) -> Result<()> {
                 ui,
             );
             let total: u32 = items.iter().map(|e| e.minutes).sum();
-            eprintln!("{}", ui.dim(&format!("{} entr(ies) · {}", items.len(), hm(total))));
+            eprintln!(
+                "{}",
+                ui.dim(&format!("{} entr(ies) · {}", items.len(), hm(total)))
+            );
         }
         WorkCmd::Log(a) => {
-            let performed_at = a
-                .at
-                .clone()
-                .unwrap_or_else(|| Utc::now().to_rfc3339_opts(SecondsFormat::Secs, true));
+            let performed_at =
+                a.at.clone()
+                    .unwrap_or_else(|| Utc::now().to_rfc3339_opts(SecondsFormat::Secs, true));
             let input = WorkEntryInput {
                 project: a.project.clone(),
                 performed_at,
@@ -287,10 +303,7 @@ fn print_project(p: &Project, ui: &Ui) {
     };
     field("domain", &domain_of(p));
     field("color id", &p.color_id.to_string());
-    field(
-        "primary lang",
-        p.primary_language.as_deref().unwrap_or("—"),
-    );
+    field("primary lang", p.primary_language.as_deref().unwrap_or("—"));
     field("languages", &p.languages.join(", "));
     if let Some(repo) = &p.repository {
         field("repository", repo);
@@ -319,7 +332,11 @@ fn print_project(p: &Project, ui: &Ui) {
                 ]
             })
             .collect();
-        table(&["  NAME", "ECOSYSTEM", "VERSION", "SCOPE", "EXTRAS"], &rows, ui);
+        table(
+            &["  NAME", "ECOSYSTEM", "VERSION", "SCOPE", "EXTRAS"],
+            &rows,
+            ui,
+        );
     }
 }
 

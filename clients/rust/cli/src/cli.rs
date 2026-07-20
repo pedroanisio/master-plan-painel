@@ -27,7 +27,12 @@ pub struct Cli {
     pub url: String,
 
     /// API key (`mpk_…`). Prefer the env var to keep it out of shell history.
-    #[arg(long, global = true, env = "MASTER_PLAN_API_KEY", hide_env_values = true)]
+    #[arg(
+        long,
+        global = true,
+        env = "MASTER_PLAN_API_KEY",
+        hide_env_values = true
+    )]
     pub api_key: Option<String>,
 
     /// Emit raw JSON instead of formatted tables (for scripts / jq).
